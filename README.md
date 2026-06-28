@@ -78,22 +78,29 @@ the install prompt is visible. On Linux/macOS the tray opens your default browse
 
 ## Using it
 
+- **Timeframe:** one control drives the whole dashboard (table, stats, and chart).
+  Pick a preset (today / this week / 4–12 weeks) or open the **calendar icon** to
+  choose a single day or a custom start→end range.
 - **Table:** each day's active calories, steps, and weight are editable. Calories and
   macros are **read-only** — they're the sum of that day's meals.
 - **Meals:** click a day (or its 🍔 icon) to add/edit/delete meals. Typing a meal name
   suggests ones you've logged before and auto-fills its calories/macros.
-- **Reports:** the chart switches between Intake vs burn, Deficit, Weight, Steps, and
-  Macros, over a selectable range (today / this week / 4–12 weeks). Macro targets are
-  suggested from your goals and shown as faded bars.
-- **Streaks** (top bar): logging, step-goal, deficit, and weekly-goal streaks.
+- **Reports:** the chart switches between Intake vs burn, Deficit, Weight, Steps,
+  Macros, and **Goal rings** (deficit / steps / protein vs your goals). Macro targets
+  are suggested from your goals and shown as faded bars.
+- **Progress:** an **XP bar** and **achievements** (100 of them, including silly ones)
+  reward consistency. **Streaks** in the top bar track logging, step-goal, deficit, and
+  weekly-goal runs.
 - **AI assistant** (chat panel): tell it what you ate or ask about your data, e.g.
   *"350g chicken and rice, walked 5km"* or *"what was my deficit yesterday?"*. Pick the
-  engine / model / effort in the chat header. Chat history is saved and grouped by day.
+  engine / model / effort above the chat. Conversations are saved in a collapsible
+  sidebar — start new ones, switch between them, or delete them.
 
 ### Goals & profile
 
-Open **Settings** (top-right): set your profile (used for resting-burn estimates),
-goals (weekly weight-loss, daily steps, target weight), theme, and AI engine.
+Open **Settings** (the profile chip, top-right): set your profile (used for resting-burn
+estimates), goals (weekly weight-loss, daily steps, target weight), theme, and install
+the desktop app. Settings, achievements, and the date picker all share one popout modal.
 
 
 
