@@ -2264,34 +2264,45 @@
         // Concentric Apple-Watch-style rings, centered: outer = Deficit, middle = Steps, inner = Protein.
         const cx = W / 2, cyc = m.top + 150, sw = 26, gap = 9, outer = 142;
         rings.forEach((ring, i) => {
-          const rad = outer - i * (sw + gap), C = 2 * Math.PI * rad;
+          const rad = outer - i * (sw + gap);
           const track = circle(cx, cyc, rad, ring.color, sw); track.setAttribute("stroke-opacity", "0.16"); svg.appendChild(track);
           const has = ring.val != null && ring.target;
-          const frac = has ? Math.max(0, Math.min(1, ring.val / ring.target)) : 0;
-          if (has && frac > 0) {
-            const off = C * (1 - frac);
+          const raw = has ? ring.val / ring.target : 0;
+          const mkArc = (frac, shadow) => {
+            const C = 2 * Math.PI * rad, off = C * (1 - frac);
             const arc = circle(cx, cyc, rad, ring.color, sw);
             arc.setAttribute("stroke-linecap", "round");
             arc.setAttribute("stroke-dasharray", C);
             arc.setAttribute("stroke-dashoffset", off);
             arc.setAttribute("transform", `rotate(-90 ${cx} ${cyc})`);
+            if (shadow) arc.style.filter = "drop-shadow(0 1.5px 2px rgba(0,0,0,.5))";  // show the overlap
             const an = document.createElementNS(SVGNS, "animate");
             an.setAttribute("attributeName", "stroke-dashoffset"); an.setAttribute("from", C); an.setAttribute("to", off);
             an.setAttribute("dur", "0.9s"); an.setAttribute("fill", "freeze"); an.setAttribute("calcMode", "spline"); an.setAttribute("keyTimes", "0;1"); an.setAttribute("keySplines", "0.2 0.7 0.2 1");
             arc.appendChild(an); svg.appendChild(arc);
-          }
-          // Percentage sits on the ring itself (at its 12 o'clock band).
-          const pct = has ? Math.round(ring.val / ring.target * 100) : null;
-          svg.appendChild(text(cx, cyc - rad + 5, pct != null ? pct + "%" : "—", "middle", "13", "#fff", "800"));
+          };
+          if (has && raw > 0) mkArc(Math.min(1, raw), false);
+          if (has && raw > 1) mkArc(Math.min(1, raw - 1), true);   // overshoot laps over the start
+          // Percentage sits on the ring band, staggered so they don't line up vertically.
+          const pct = has ? Math.round(raw * 100) : null;
+          const a = (-90 + i * 22) * Math.PI / 180;
+          const pn = text(cx + rad * Math.cos(a), cyc + rad * Math.sin(a), pct != null ? pct + "%" : "—", "middle", "13", "#fff", "800");
+          pn.setAttribute("dominant-baseline", "central");
+          svg.appendChild(pn);
         });
-        // Centered legend below the rings: metric + value / target.
-        const baseY = cyc + outer + 28;
+        // Centered legend below the rings (with padding): coloured label, normal value.
+        const baseY = cyc + outer + 44;
         rings.forEach((ring, i) => {
           const has = ring.val != null && ring.target;
-          const sub = has
-            ? `${ring.label} · ${fmt(Math.round(ring.val))} / ${fmt(Math.round(ring.target))}${ring.unit ? " " + ring.unit : ""}`
-            : `${ring.label} · ${ring.target ? "no data" : "set a goal"}`;
-          svg.appendChild(text(cx, baseY + i * 22, sub, "middle", "13", ring.color, "650"));
+          const valTxt = has
+            ? ` · ${fmt(Math.round(ring.val))} / ${fmt(Math.round(ring.target))}${ring.unit ? " " + ring.unit : ""}`
+            : ` · ${ring.target ? "no data" : "set a goal"}`;
+          const lt = document.createElementNS(SVGNS, "text");
+          lt.setAttribute("x", cx); lt.setAttribute("y", baseY + i * 22); lt.setAttribute("text-anchor", "middle"); lt.setAttribute("font-size", "13");
+          const t1 = document.createElementNS(SVGNS, "tspan"); t1.setAttribute("fill", ring.color); t1.setAttribute("font-weight", "750"); t1.textContent = ring.label;
+          const t2 = document.createElementNS(SVGNS, "tspan"); t2.setAttribute("fill", col.muted); t2.setAttribute("font-weight", "600"); t2.textContent = valTxt;
+          lt.appendChild(t1); lt.appendChild(t2);
+          svg.appendChild(lt);
         });
       }
 
