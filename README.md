@@ -15,7 +15,7 @@ Works on **Windows, Linux, and macOS** and in **any modern browser**.
 <img width="877" height="1288" alt="image" src="https://github.com/user-attachments/assets/1c246774-ab7a-4423-b903-7db89b9833f4" />
 
 
----
+
 
 ## Requirements
 
@@ -31,7 +31,7 @@ Works on **Windows, Linux, and macOS** and in **any modern browser**.
 
   Sign in to that CLI once (per its own instructions). The tracker uses your existing plan.
 
----
+
 
 ## Setup
 
@@ -58,7 +58,7 @@ Open it any time at **http://localhost:3000**.
 
 Set a different port with `PORT=8080 npm start`.
 
----
+
 
 ## Install as a desktop app (any browser)
 
@@ -74,7 +74,7 @@ the install prompt is visible. On Linux/macOS the tray opens your default browse
 > The tray keeps the local server running, which is what the app/PWA loads — so keep it
 > running (or enable **Start on login**).
 
----
+
 
 ## Using it
 
@@ -95,7 +95,7 @@ the install prompt is visible. On Linux/macOS the tray opens your default browse
 Open **Settings** (top-right): set your profile (used for resting-burn estimates),
 goals (weekly weight-loss, daily steps, target weight), theme, and AI engine.
 
----
+
 
 ## Data & privacy
 
@@ -103,7 +103,7 @@ Everything is local. Your log lives in `tracker.db` (SQLite) next to the app; AI
 are in `ai-config.json`. **Back up by copying `tracker.db`.** Nothing is sent anywhere
 except the prompts your chosen CLI sends to its own provider.
 
----
+
 
 ## Troubleshooting
 
@@ -114,7 +114,7 @@ except the prompts your chosen CLI sends to its own provider.
 - **`better-sqlite3` build errors** → install the build tools listed under Requirements, then `npm install` again.
 - **Port already in use** → run with a different `PORT`.
 
----
+
 
 ## Project layout
 
