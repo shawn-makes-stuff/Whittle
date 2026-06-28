@@ -2261,6 +2261,7 @@
         ];
         setLegend("");
         const circle = (cx, cy, rr, stroke, w) => { const c = document.createElementNS(SVGNS, "circle"); c.setAttribute("cx", cx); c.setAttribute("cy", cy); c.setAttribute("r", rr); c.setAttribute("fill", "none"); c.setAttribute("stroke", stroke); c.setAttribute("stroke-width", w); return c; };
+        const dot = (x, y, rr, fill) => { const c = document.createElementNS(SVGNS, "circle"); c.setAttribute("cx", x); c.setAttribute("cy", y); c.setAttribute("r", rr); c.setAttribute("fill", fill); return c; };
         // Concentric Apple-Watch-style rings, centered: outer = Deficit, middle = Steps, inner = Protein.
         const cx = W / 2, cyc = m.top + 150, sw = 26, gap = 9, outer = 142;
         rings.forEach((ring, i) => {
@@ -2268,31 +2269,37 @@
           const track = circle(cx, cyc, rad, ring.color, sw); track.setAttribute("stroke-opacity", "0.16"); svg.appendChild(track);
           const has = ring.val != null && ring.target;
           const raw = has ? ring.val / ring.target : 0;
-          const mkArc = (frac, shadow) => {
+          const mkArc = (frac) => {
             const C = 2 * Math.PI * rad, off = C * (1 - frac);
             const arc = circle(cx, cyc, rad, ring.color, sw);
             arc.setAttribute("stroke-linecap", "round");
             arc.setAttribute("stroke-dasharray", C);
             arc.setAttribute("stroke-dashoffset", off);
             arc.setAttribute("transform", `rotate(-90 ${cx} ${cyc})`);
-            if (shadow) arc.style.filter = "drop-shadow(0 2px 3px rgba(0,0,0,.6))";  // show the overlap
             const an = document.createElementNS(SVGNS, "animate");
             an.setAttribute("attributeName", "stroke-dashoffset"); an.setAttribute("from", C); an.setAttribute("to", off);
             an.setAttribute("dur", "0.9s"); an.setAttribute("fill", "freeze"); an.setAttribute("calcMode", "spline"); an.setAttribute("keyTimes", "0;1"); an.setAttribute("keySplines", "0.2 0.7 0.2 1");
             arc.appendChild(an); svg.appendChild(arc);
           };
           const over = raw > 1 ? (raw - 1) % 1 : 0;   // fractional lap past 100%
-          if (has && raw > 0) mkArc(Math.min(1, raw), false);
-          if (has && over > 0.002) mkArc(over, true);   // overshoot end laps over the start, shadowed
-          // Percentage rides the leading end of the arc, rotated to follow the curve.
+          if (has && raw > 0) mkArc(Math.min(1, raw));
+          if (has && over > 0.002) {                  // overshoot end laps over the start
+            mkArc(over);
+            const td = (-90 + over * 360) * Math.PI / 180;     // shadow only the leading end
+            const cap = dot(cx + rad * Math.cos(td), cyc + rad * Math.sin(td), sw / 2, ring.color);
+            cap.style.filter = "drop-shadow(0 2px 3px rgba(0,0,0,.65))";
+            svg.appendChild(cap);
+          }
+          // Percentage sits just past the leading end (breathing room), rotated to follow the curve.
           const pct = has ? Math.round(raw * 100) : null;
           const tipFrac = !has || raw <= 0 ? 0 : raw <= 1 ? raw : (over > 0.002 ? over : 1);
-          const deg = -90 + tipFrac * 360, ar = deg * Math.PI / 180;
-          const px = cx + rad * Math.cos(ar), py = cyc + rad * Math.sin(ar);
-          let rot = ((deg + 90) % 360 + 360) % 360; if (rot > 90 && rot < 270) rot -= 180;
+          const ldeg = -90 + tipFrac * 360 - (30 / rad) * 180 / Math.PI, lar = ldeg * Math.PI / 180;
+          const px = cx + rad * Math.cos(lar), py = cyc + rad * Math.sin(lar);
+          let rot = ((ldeg + 90) % 360 + 360) % 360; if (rot > 90 && rot < 270) rot -= 180;
           const pn = text(px, py, pct != null ? pct + "%" : "—", "middle", "12", "#fff", "800");
           pn.setAttribute("dominant-baseline", "central");
           pn.setAttribute("transform", `rotate(${rot} ${px} ${py})`);
+          pn.style.filter = "drop-shadow(0 1px 1.5px rgba(0,0,0,.6))";
           svg.appendChild(pn);
         });
         // Centered legend below the rings (with padding): coloured label, normal value.
