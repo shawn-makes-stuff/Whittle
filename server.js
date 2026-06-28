@@ -27,21 +27,26 @@ app.get('/api/ai/engines', (req, res) => res.json(getEngines()));
 
 app.post('/api/ai', async (req, res) => {
   try {
-    const { message, today } = req.body || {};
+    const { message, today, sessionId } = req.body || {};
     const day = today || new Date().toISOString().slice(0, 10);
+    const session = sessionId || store.createSession().id;
     const state = store.getState();
     const result = await parseEntry({ message, today: day, profile: state.profile, history: state.entries });
     for (const { date, ...fields } of result.changes) store.mergeEntry(date, fields);
     for (const meal of result.meals) store.addMeal(meal);
-    store.addChat('user', message, day);
-    store.addChat('ai', result.answer || '', day);
-    res.json(result);
+    store.titleSessionIfNew(session, message);
+    store.addChat('user', message, day, session);
+    store.addChat('ai', result.answer || '', day, session);
+    res.json({ ...result, sessionId: session });
   } catch (err) {
     res.status(500).json({ error: err.message || 'AI request failed' });
   }
 });
 
-app.get('/api/chat', (req, res) => res.json(store.listChat()));
+app.get('/api/chat', (req, res) => res.json(store.listChat(Number(req.query.session) || null)));
+app.get('/api/chat/sessions', (req, res) => res.json(store.listSessions()));
+app.post('/api/chat/sessions', (req, res) => res.json(store.createSession()));
+app.delete('/api/chat/sessions/:id', (req, res) => { store.deleteSession(Number(req.params.id)); res.json({ ok: true }); });
 
 app.get('/api/meals/suggestions', (req, res) => res.json(store.mealSuggestions()));
 

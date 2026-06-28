@@ -133,22 +133,46 @@
       font-size: 15px;
     }
 
-    .toolbar, .card, .table-card, .profile-popover {
+    .card, .table-card {
       background: linear-gradient(180deg, var(--card-sheen), var(--card-sheen2)), var(--panel);
       border: 1px solid var(--card-border);
       border-radius: var(--radius);
       box-shadow: 0 18px 50px var(--shadow);
     }
 
-    .toolbar {
-      padding: 14px;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: flex-end;
-      gap: 14px;
-      margin-bottom: 16px;
+    /* Slim XP bar pinned to the top of the page (no box) */
+    .xpbar { margin: 0 2px 18px; }
+    .xpbar-track { height: 6px; border-radius: 999px; background: var(--stat-bg); overflow: hidden; }
+    .xpbar-fill { height: 100%; width: 0; border-radius: 999px; background: linear-gradient(90deg, var(--primary), var(--good)); box-shadow: 0 0 14px var(--accent-soft); transition: width .8s cubic-bezier(.2,.7,.2,1); }
+    .xpbar-meta { display: flex; justify-content: space-between; margin-top: 6px; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .02em; }
+    .xpbar-meta #xpLabel { color: var(--primary); }
+
+    .ach-chip {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 9px 12px; border-radius: 999px;
+      background: var(--chip-bg); border: 1px solid var(--card-border);
+      color: var(--text); font-weight: 750; font-size: 13px; white-space: nowrap;
     }
-    .toolbar > label { min-width: 170px; }
+    .ach-chip .ach-ico { font-size: 14px; }
+
+    .cal-btn { display: inline-flex; align-items: center; justify-content: center; padding: 8px 10px; border-radius: 10px; cursor: pointer; color: var(--text); }
+    .cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .cal-head strong { font-size: 14px; }
+    .cal-nav { width: 32px; height: 32px; border-radius: 8px; padding: 0; }
+    .cal-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; margin-bottom: 4px; }
+    .cal-week span { text-align: center; font-size: 11px; color: var(--muted); font-weight: 700; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+    .cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 13px; cursor: pointer; border: 1px solid transparent; background: transparent; color: var(--text); }
+    .cal-day:hover { background: var(--stat-bg); }
+    .cal-day.muted { color: var(--muted); opacity: .4; }
+    .cal-day.today { border-color: var(--card-border); }
+    .cal-day.in-range { background: var(--accent-soft); }
+    .cal-day.edge { background: var(--primary); color: #fff; font-weight: 800; }
+    .cal-hint { color: var(--muted); font-size: 12px; margin: 12px 0 8px; }
+    .date-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .date-fields label { font-size: 12px; }
+    .date-quick { display: flex; gap: 8px; margin-top: 12px; }
+    .date-quick button { flex: 1; padding: 9px; border-radius: 10px; font-weight: 650; }
 
     label {
       display: grid;
@@ -222,21 +246,6 @@
     button.primary { background: linear-gradient(135deg, var(--primary), var(--primary-2)); border-color: transparent; color: #fff; }
     button.danger { background: var(--danger-bg); color: var(--danger-text); }
 
-    .week-buttons {
-      display: grid;
-      grid-template-columns: 44px 1fr 44px;
-      gap: 8px;
-    }
-
-    .week-buttons button {
-      padding: 10px 8px;
-      border-radius: 999px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 42px;
-    }
-
     .profile-wrap {
       position: relative;
       display: flex;
@@ -284,37 +293,7 @@
     .profile-summary strong { font-size: 13px; }
     .profile-summary span { font-size: 11px; color: var(--muted); font-weight: 600; }
 
-    .profile-popover {
-      position: absolute;
-      right: 0;
-      top: calc(100% + 10px);
-      z-index: 10;
-      width: min(440px, calc(100vw - 36px));
-      max-height: calc(100vh - 120px);
-      overflow-y: auto;
-      padding: 0;
-      transform-origin: top right;
-      box-shadow: 0 26px 80px var(--shadow), 0 0 0 1px var(--card-border);
-    }
-
-    .profile-popover.hidden { display: none; }
-
-    .pop-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 16px;
-      background: linear-gradient(135deg, var(--primary), var(--primary-2));
-      color: #fff;
-      position: sticky;
-      top: 0;
-    }
-    .pop-head strong { font-size: 15px; letter-spacing: .01em; }
-    .pop-head button {
-      background: rgba(255,255,255,.16); border: none; color: #fff;
-      width: 28px; height: 28px; border-radius: 8px; padding: 0; font-size: 18px; line-height: 1;
-    }
-    .pop-head button:hover { background: rgba(255,255,255,.3); transform: none; box-shadow: none; }
+    .pop-section:first-child { border-top: none; }
 
     .pop-section { padding: 14px 16px; border-top: 1px solid var(--card-border); }
     .pop-section h4 {
@@ -491,24 +470,37 @@
       margin-top: 20px;
     }
 
-    .chat { margin-top: 16px; }
-    .chat-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
-    .chat-head strong { font-size: 16px; }
-    .chat-ai-settings { display: flex; gap: 8px; flex-wrap: wrap; }
+    .chat { margin-top: 16px; padding: 0; overflow: hidden; }
+    .chat-layout { display: flex; height: 540px; position: relative; }
+    .chat-sidebar { width: 224px; flex: none; display: flex; flex-direction: column; border-right: 1px solid var(--card-border); background: var(--stat-bg); }
+    .chat-sidebar.collapsed { display: none; }
+    .chat-side-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 12px 8px; }
+    .chat-side-head strong { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+    .chat-list { flex: 1; overflow-y: auto; padding: 4px 8px 10px; display: flex; flex-direction: column; gap: 3px; scrollbar-width: thin; scrollbar-color: var(--card-border) transparent; }
+    .chat-item { display: flex; align-items: center; gap: 6px; padding: 9px 10px; border-radius: 9px; cursor: pointer; }
+    .chat-item:hover { background: var(--panel); }
+    .chat-item.active { background: var(--accent-soft); }
+    .chat-item-title { flex: 1; min-width: 0; font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .chat-item-del { flex: none; background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 16px; line-height: 1; padding: 0 4px; opacity: 0; }
+    .chat-item:hover .chat-item-del, .chat-item.active .chat-item-del { opacity: .75; }
+    .chat-item-del:hover { color: var(--bad); background: transparent; border: none; transform: none; box-shadow: none; }
+    .chat-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .chat-main-head { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-bottom: 1px solid var(--card-border); flex-wrap: wrap; }
+    .chat-main-head strong { font-size: 15px; }
+    .chat-ai-settings { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; }
     .chat-ai-settings select { padding: 6px 9px; border-radius: 9px; font-size: 12px; font-weight: 650; }
+    .chat-tool-btn { padding: 6px 10px; border-radius: 9px; font-size: 14px; line-height: 1; }
 
-    .chat-log-wrap { position: relative; margin-bottom: 12px; }
+    .chat-log-wrap { position: relative; flex: 1; min-height: 0; }
     .chat-log-wrap::before {
-      content: ""; position: absolute; top: 1px; left: 1px; right: 1px; height: 64px;
-      background: linear-gradient(var(--stat-bg), var(--stat-bg) 30%, transparent);
-      border-radius: 13px 13px 0 0; pointer-events: none; z-index: 2;
+      content: ""; position: absolute; top: 0; left: 0; right: 0; height: 56px;
+      background: linear-gradient(var(--stat-bg), var(--stat-bg) 28%, transparent);
+      pointer-events: none; z-index: 2;
     }
     .chat-log {
       display: flex; flex-direction: column; gap: 8px;
-      height: 440px; overflow-y: auto;
-      padding: 16px 12px 12px;
-      border: 1px solid var(--card-border);
-      border-radius: 14px;
+      height: 100%; overflow-y: auto;
+      padding: 16px 14px 14px;
       background: var(--stat-bg);
     }
     .chat-day { align-self: center; margin: 6px 0 2px; padding: 2px 10px; border-radius: 999px; background: var(--panel); border: 1px solid var(--card-border); color: var(--muted); font-size: 11px; font-weight: 700; }
@@ -532,7 +524,7 @@
     .typing-dots span:nth-child(3) { animation-delay: .36s; }
     @keyframes typing-bounce { 0%, 70%, 100% { transform: translateY(0); opacity: .35; } 35% { transform: translateY(-5px); opacity: 1; } }
 
-    .chat-input { display: flex; gap: 10px; align-items: flex-end; }
+    .chat-input { display: flex; gap: 10px; align-items: flex-end; padding: 12px 14px; border-top: 1px solid var(--card-border); }
     .chat-input textarea {
       flex: 1;
       min-height: 44px;
@@ -582,8 +574,9 @@
     .modal-card { width: min(460px, 100%); max-height: 82vh; overflow-y: auto; background: var(--panel); border: 1px solid var(--card-border); border-radius: var(--radius); box-shadow: 0 26px 80px var(--shadow); }
     .modal-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; background: linear-gradient(135deg, var(--primary), var(--primary-2)); color: #fff; position: sticky; top: 0; }
     .modal-head strong { font-size: 15px; }
-    .modal-head button { background: rgba(255,255,255,.16); border: none; color: #fff; width: 28px; height: 28px; border-radius: 8px; padding: 0; font-size: 18px; line-height: 1; }
-    .modal-head button:hover { background: rgba(255,255,255,.3); transform: none; box-shadow: none; }
+    .modal-head button { background: transparent; border: none; color: #fff; width: 28px; height: 28px; border-radius: 8px; padding: 0; font-size: 20px; line-height: 1; opacity: .85; }
+    .modal-head button:hover { background: transparent; opacity: 1; transform: none; box-shadow: none; }
+    body.no-scroll { overflow: hidden; }
     .meals-list { padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
     .meals-list:empty::before { content: "No meals logged for this day yet."; color: var(--muted); font-size: 13px; }
     .meal-item { display: flex; align-items: center; gap: 10px; padding: 9px 11px; border: 1px solid var(--card-border); border-radius: 12px; background: var(--stat-bg); }
@@ -603,26 +596,69 @@
     .meal-item .me-save:hover, .meal-item .me-cancel:hover { transform: none; box-shadow: none; border: none; }
     .meals-add { display: grid; grid-template-columns: 1fr 72px 46px 46px 46px auto; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--card-border); }
     .meals-add input { min-width: 0; }
-    @media (max-width: 560px) { .meals-add { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 560px) {
+      .meals-add { grid-template-columns: 1fr 1fr; }
+      /* Full-screen sheets — popouts are much easier to use this way on a phone */
+      .modal { padding: 0; place-items: stretch; }
+      .modal-card, #modal .modal-card { width: 100%; height: 100%; max-height: 100%; border-radius: 0; }
+      .modal-head { padding: 16px; }
+      .modal-head strong { font-size: 16px; }
+      .modal-head button { width: 40px; height: 40px; font-size: 26px; }
+      .ach-cards { grid-template-columns: 1fr 1fr; }
+      .date-fields { grid-template-columns: 1fr 1fr; }
+      .cal-day { font-size: 15px; border-radius: 10px; }
+      .cal-nav { width: 40px; height: 40px; }
+      .date-quick button { padding: 12px; }
+      .pop-row select, .pop-row input { max-width: none; flex: 1; }
+    }
+
+    .ach-count { color: var(--muted); font-weight: 650; font-size: 13px; }
+    #modal .modal-card { width: min(640px, 100%); display: flex; flex-direction: column; overflow: hidden; }
+    .modal-body { overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--card-border) transparent; }
+    .modal-body::-webkit-scrollbar { width: 10px; }
+    .modal-body::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 999px; border: 3px solid var(--panel); }
+    .modal-body::-webkit-scrollbar-track { background: transparent; }
+    .panel.hidden { display: none; }
+    #panelDates { padding: 16px; }
+    .ach-grid { padding: 4px 16px 16px; }
+    .ach-cat { font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 16px 2px 8px; }
+    .ach-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+    .badge { display: flex; gap: 10px; align-items: flex-start; padding: 11px; border: 1px solid var(--card-border); border-radius: 12px; background: var(--stat-bg); }
+    .badge.locked { opacity: .5; }
+    .badge.unlocked { border-color: color-mix(in srgb, var(--primary) 45%, var(--card-border)); }
+    .badge .ico { font-size: 22px; line-height: 1; }
+    .badge .b-name { font-weight: 700; font-size: 13px; }
+    .badge .b-desc { color: var(--muted); font-size: 11px; margin-top: 2px; }
+
+    .toasts { position: fixed; left: 0; right: 0; bottom: 22px; display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; z-index: 60; }
+    .toast { pointer-events: auto; background: var(--panel); border: 1px solid var(--card-border); border-radius: 14px; padding: 12px 16px; box-shadow: 0 18px 50px var(--shadow); font-weight: 700; display: flex; gap: 10px; align-items: center; max-width: 92vw; animation: toastin .35s cubic-bezier(.2,.8,.2,1); }
+    .toast .t-ico { font-size: 20px; }
+    .toast .t-sub { color: var(--muted); font-weight: 600; font-size: 12px; }
+    @keyframes toastin { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+    #confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 70; display: none; }
 
     @media (max-width: 980px) {
-      .toolbar { grid-template-columns: repeat(2, minmax(130px, 1fr)); }
       .grid { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 720px) {
       .wrap { padding: 18px 10px 36px; }
-      header { align-items: flex-start; }
-      .toolbar { grid-template-columns: 1fr; }
-      .stats { grid-template-columns: 1fr; }
-      .table-scroll { overflow-x: auto; }
-      table { min-width: 1180px; }
+      header { flex-direction: column; align-items: stretch; gap: 12px; }
+      .chart-selects { flex-wrap: wrap; }
+      .chart-selects select { flex: 1; min-width: 120px; }
+      .stats { grid-template-columns: 1fr 1fr; }
+      .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      table { min-width: 900px; }
       .chart-head { display: block; }
       .legend { justify-content: flex-start; margin-top: 10px; }
-      .profile-wrap { width: 100%; justify-content: flex-end; }
+      .profile-wrap { width: 100%; flex-wrap: wrap; justify-content: flex-start; }
+      .profile-chip { margin-left: auto; }
       .profile-grid { grid-template-columns: 1fr; }
-      .bubble { max-width: 90%; }
+      .bubble { max-width: 92%; }
+      .chat-layout { height: 72vh; }
+      .chat-sidebar { position: absolute; top: 0; bottom: 0; left: 0; width: 80%; max-width: 280px; z-index: 6; box-shadow: 0 18px 50px var(--shadow); }
     }
+    @media (max-width: 420px) { .stats { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -635,79 +671,21 @@
 
       <div class="profile-wrap">
         <div class="streaks" id="streaks"></div>
-        <button id="profileButton" class="profile-chip" type="button" aria-expanded="false" aria-controls="profilePopover">
+        <button id="achBtn" class="ach-chip" type="button" title="Achievements"><span class="ach-ico">🏅</span> <span id="achChipCount">0</span></button>
+        <button id="profileButton" class="profile-chip" type="button" aria-haspopup="dialog">
           <span class="avatar" aria-hidden="true">👤</span>
           <span class="profile-summary">
             <strong id="profileNameLabel">Profile</strong>
             <span id="profileMetaLabel">Set age, height, weight</span>
           </span>
         </button>
-
-        <section id="profilePopover" class="profile-popover hidden" aria-label="Settings">
-          <div class="pop-head">
-            <strong>Settings</strong>
-            <button id="closeProfile" type="button" aria-label="Close">×</button>
-          </div>
-
-          <div class="pop-section">
-            <h4>Profile</h4>
-            <div class="profile-grid">
-              <label class="profile-wide">Name <input id="profileName" type="text" autocomplete="name" /></label>
-              <label>Sex
-                <select id="profileSex"><option value="male">Male</option><option value="female">Female</option></select>
-              </label>
-              <label>Age <input id="profileAge" type="number" min="0" step="1" /></label>
-              <label>Height cm <input id="profileHeight" type="number" min="0" step="0.5" /></label>
-              <label>Current weight kg <input id="profileWeight" type="number" min="0" step="0.1" /></label>
-            </div>
-            <p class="mini-note" id="profileCalcNote">Estimated resting burn will appear here.</p>
-          </div>
-
-          <div class="pop-section">
-            <h4>Goals</h4>
-            <div class="profile-grid">
-              <label>Weekly weight loss kg <input id="goalLoss" type="number" min="0" step="0.1" /></label>
-              <label>Daily movement steps <input id="goalSteps" type="number" min="0" step="500" /></label>
-              <label class="profile-wide">Target weight kg <input id="goalWeight" type="number" min="0" step="0.1" /></label>
-            </div>
-          </div>
-
-          <div class="pop-section">
-            <h4>Appearance</h4>
-            <div class="pop-row">
-              <span>Theme</span>
-              <div class="seg" role="group" aria-label="Theme">
-                <button type="button" data-theme-choice="dark">Dark</button>
-                <button type="button" data-theme-choice="light">Light</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="pop-section" id="installRow" style="display:none">
-            <h4>Desktop app</h4>
-            <div class="pop-row">
-              <span>Install as an app</span>
-              <button id="installBtn" type="button" class="primary">Install</button>
-            </div>
-          </div>
-        </section>
       </div>
     </header>
 
-    <section class="toolbar" aria-label="Week">
-      <label>
-        Week starting
-        <input id="weekStart" type="date" />
-      </label>
-      <label>
-        Week
-        <div class="week-buttons">
-          <button id="prevWeek" type="button" title="Previous week">←</button>
-          <button id="thisWeek" type="button">This week</button>
-          <button id="nextWeek" type="button" title="Next week">→</button>
-        </div>
-      </label>
-    </section>
+    <div class="xpbar" title="XP from logging and hitting your goals">
+      <div class="xpbar-track"><div class="xpbar-fill" id="xpFill"></div></div>
+      <div class="xpbar-meta"><span id="xpLabel">✦ 0 XP</span><span id="xpNext" class="xpbar-next"></span></div>
+    </div>
 
     <main class="grid">
       <section class="card chart-card">
@@ -726,13 +704,17 @@
                 <option value="macros">Macros</option>
                 <option value="rings">Goal rings</option>
               </select>
-              <select id="reportRange" aria-label="Range">
+              <select id="reportRange" aria-label="Timeframe">
                 <option value="today">Today</option>
                 <option value="week" selected>This week</option>
                 <option value="28">4 weeks</option>
                 <option value="56">8 weeks</option>
                 <option value="84">12 weeks</option>
+                <option value="custom">Custom</option>
               </select>
+              <button id="calBtn" class="cal-btn" type="button" title="Pick a date or range" aria-label="Pick a date or range">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v3M16 3v3"/></svg>
+              </button>
             </div>
             <div class="legend" id="legend"></div>
           </div>
@@ -742,7 +724,7 @@
 
       <aside class="card">
         <div class="aside-head">
-          <strong>This week</strong>
+          <strong id="asideTitle">This week</strong>
           <span class="info" tabindex="0" role="img" aria-label="How these are calculated" title="Resting burn uses the Mifflin-St Jeor BMR formula. Blank active calories are estimated from your steps, weight and height. Missing weights are filled from your nearest weigh-ins.">i</span>
         </div>
         <div class="stats" id="stats"></div>
@@ -777,19 +759,31 @@
 
 
     <section class="card chat">
-      <div class="chat-head">
-        <strong>AI assistant</strong>
-        <div class="chat-ai-settings">
-          <select id="aiEngine" aria-label="AI engine"><option value="claude">Claude</option><option value="codex">Codex</option><option value="gemini">Gemini</option></select>
-          <select id="aiModel" aria-label="Model"></select>
-          <select id="aiEffort" aria-label="Effort"><option value="low">low</option><option value="medium">medium</option><option value="high">high</option></select>
+      <div class="chat-layout">
+        <aside class="chat-sidebar" id="chatSidebar">
+          <div class="chat-side-head">
+            <strong>Chats</strong>
+            <button id="chatNew" type="button" class="chat-tool-btn" title="New chat" aria-label="New chat">＋</button>
+          </div>
+          <div class="chat-list" id="chatList"></div>
+        </aside>
+        <div class="chat-main">
+          <div class="chat-main-head">
+            <button id="chatToggle" type="button" class="chat-tool-btn" title="Show/hide conversations" aria-label="Show/hide conversations">☰</button>
+            <strong>AI assistant</strong>
+            <div class="chat-ai-settings">
+              <select id="aiEngine" aria-label="AI engine"><option value="claude">Claude</option><option value="codex">Codex</option><option value="gemini">Gemini</option></select>
+              <select id="aiModel" aria-label="Model"></select>
+              <select id="aiEffort" aria-label="Effort"><option value="low">low</option><option value="medium">medium</option><option value="high">high</option></select>
+            </div>
+          </div>
+          <div class="chat-log-wrap"><div class="chat-log" id="chatLog" aria-live="polite"></div></div>
+          <form class="chat-input" id="chatForm">
+            <textarea id="chatInput" rows="1" placeholder="Message assistant…"></textarea>
+            <button class="primary" type="submit" id="chatSend">Send</button>
+          </form>
         </div>
       </div>
-      <div class="chat-log-wrap"><div class="chat-log" id="chatLog" aria-live="polite"></div></div>
-      <form class="chat-input" id="chatForm">
-        <textarea id="chatInput" rows="1" placeholder="Message assistant…"></textarea>
-        <button class="primary" type="submit" id="chatSend">Send</button>
-      </form>
     </section>
 
     <p class="footer-note">Estimates only — not a medical device.</p>
@@ -809,12 +803,92 @@
         </form>
       </div>
     </div>
+
+    <div id="modal" class="modal hidden">
+      <div class="modal-card">
+        <div class="modal-head"><strong id="modalTitle"></strong><button id="modalClose" type="button" aria-label="Close">×</button></div>
+        <div class="modal-body">
+
+          <div id="panelSettings" class="panel hidden">
+            <div class="pop-section">
+              <h4>Profile</h4>
+              <div class="profile-grid">
+                <label class="profile-wide">Name <input id="profileName" type="text" autocomplete="name" /></label>
+                <label>Sex
+                  <select id="profileSex"><option value="male">Male</option><option value="female">Female</option></select>
+                </label>
+                <label>Age <input id="profileAge" type="number" min="0" step="1" /></label>
+                <label>Height cm <input id="profileHeight" type="number" min="0" step="0.5" /></label>
+                <label>Current weight kg <input id="profileWeight" type="number" min="0" step="0.1" /></label>
+              </div>
+              <p class="mini-note" id="profileCalcNote">Estimated resting burn will appear here.</p>
+            </div>
+            <div class="pop-section">
+              <h4>Goals</h4>
+              <div class="profile-grid">
+                <label>Weekly weight loss kg <input id="goalLoss" type="number" min="0" step="0.1" /></label>
+                <label>Daily movement steps <input id="goalSteps" type="number" min="0" step="500" /></label>
+                <label class="profile-wide">Target weight kg <input id="goalWeight" type="number" min="0" step="0.1" /></label>
+              </div>
+            </div>
+            <div class="pop-section">
+              <h4>Appearance</h4>
+              <div class="pop-row">
+                <span>Theme</span>
+                <div class="seg" role="group" aria-label="Theme">
+                  <button type="button" data-theme-choice="dark">Dark</button>
+                  <button type="button" data-theme-choice="light">Light</button>
+                </div>
+              </div>
+            </div>
+            <div class="pop-section" id="installRow" style="display:none">
+              <h4>Desktop app</h4>
+              <div class="pop-row">
+                <span>Install as an app</span>
+                <button id="installBtn" type="button" class="primary">Install</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="panelAch" class="panel hidden">
+            <div class="ach-grid" id="achGrid"></div>
+          </div>
+
+          <div id="panelDates" class="panel hidden">
+            <div class="cal">
+              <div class="cal-head">
+                <button id="calPrev" class="cal-nav" type="button" aria-label="Previous month">‹</button>
+                <strong id="calMonth"></strong>
+                <button id="calNext" class="cal-nav" type="button" aria-label="Next month">›</button>
+              </div>
+              <div class="cal-week"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>
+              <div class="cal-grid" id="calGrid"></div>
+            </div>
+            <p class="cal-hint" id="calHint">Tap a day, or a start then an end. Or type below.</p>
+            <div class="date-fields">
+              <label>Start <input id="dateStart" type="date" /></label>
+              <label>End <input id="dateEnd" type="date" /></label>
+            </div>
+            <div class="date-quick">
+              <button id="dateToday" type="button">Today</button>
+              <button id="dateWeek" type="button">This week</button>
+              <button id="dateClear" type="button">Reset</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
   </div>
+
+  <canvas id="confetti" aria-hidden="true"></canvas>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
 
   <script>
     const THEME_KEY = "weekly-calorie-tracker-theme";
     const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const MONTH_FULL = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
     // Defaults used as fallbacks for blank profile fields and offline startup.
     const seed = {
@@ -826,14 +900,28 @@
     let state = JSON.parse(JSON.stringify(seed));
 
     const els = {
-      weekStart: document.getElementById("weekStart"),
       goalLoss: document.getElementById("goalLoss"),
       goalSteps: document.getElementById("goalSteps"),
       goalWeight: document.getElementById("goalWeight"),
       chartType: document.getElementById("chartType"),
-      prevWeek: document.getElementById("prevWeek"),
-      thisWeek: document.getElementById("thisWeek"),
-      nextWeek: document.getElementById("nextWeek"),
+      calBtn: document.getElementById("calBtn"),
+      calMonth: document.getElementById("calMonth"),
+      calGrid: document.getElementById("calGrid"),
+      calPrev: document.getElementById("calPrev"),
+      calNext: document.getElementById("calNext"),
+      calHint: document.getElementById("calHint"),
+      dateStart: document.getElementById("dateStart"),
+      dateEnd: document.getElementById("dateEnd"),
+      dateToday: document.getElementById("dateToday"),
+      dateWeek: document.getElementById("dateWeek"),
+      dateClear: document.getElementById("dateClear"),
+      modal: document.getElementById("modal"),
+      modalTitle: document.getElementById("modalTitle"),
+      modalClose: document.getElementById("modalClose"),
+      panelSettings: document.getElementById("panelSettings"),
+      panelAch: document.getElementById("panelAch"),
+      panelDates: document.getElementById("panelDates"),
+      asideTitle: document.getElementById("asideTitle"),
       dailyRows: document.getElementById("dailyRows"),
       chart: document.getElementById("chart"),
       chartTitle: document.getElementById("chartTitle"),
@@ -857,13 +945,23 @@
       chatForm: document.getElementById("chatForm"),
       chatInput: document.getElementById("chatInput"),
       chatSend: document.getElementById("chatSend"),
+      chatSidebar: document.getElementById("chatSidebar"),
+      chatList: document.getElementById("chatList"),
+      chatNew: document.getElementById("chatNew"),
+      chatToggle: document.getElementById("chatToggle"),
       aiEngine: document.getElementById("aiEngine"),
       aiModel: document.getElementById("aiModel"),
       aiEffort: document.getElementById("aiEffort"),
       streaks: document.getElementById("streaks"),
+      xpFill: document.getElementById("xpFill"),
+      xpLabel: document.getElementById("xpLabel"),
+      xpNext: document.getElementById("xpNext"),
+      achChipCount: document.getElementById("achChipCount"),
+      achBtn: document.getElementById("achBtn"),
+      achGrid: document.getElementById("achGrid"),
+      confetti: document.getElementById("confetti"),
+      toasts: document.getElementById("toasts"),
       profileButton: document.getElementById("profileButton"),
-      profilePopover: document.getElementById("profilePopover"),
-      closeProfile: document.getElementById("closeProfile"),
       profileName: document.getElementById("profileName"),
       profileSex: document.getElementById("profileSex"),
       profileAge: document.getElementById("profileAge"),
@@ -961,16 +1059,23 @@
       els.goalSteps.value = state.settings.stepsGoal;
       els.goalWeight.value = state.settings.weightGoal;
 
-      const seedWeek = "2026-06-22";
-      const hasSeedWeek = Object.keys(state.entries).some(d => d.startsWith("2026-06"));
-      els.weekStart.value = hasSeedWeek ? seedWeek : toIso(getMonday(new Date()));
-
-      els.weekStart.addEventListener("change", render);
       [els.goalLoss, els.goalSteps, els.goalWeight].forEach(i => i.addEventListener("input", updateSettingsAndRefresh));
       els.chartType.addEventListener("change", render);
       els.reportRange.addEventListener("change", render);
+      els.calBtn.addEventListener("click", openDates);
+      els.calPrev.addEventListener("click", () => { calView.setMonth(calView.getMonth() - 1); renderCal(); });
+      els.calNext.addEventListener("click", () => { calView.setMonth(calView.getMonth() + 1); renderCal(); });
+      els.calGrid.addEventListener("click", e => { const b = e.target.closest(".cal-day"); if (b) pickDay(b.dataset.iso); });
+      els.dateStart.addEventListener("change", applyDateFields);
+      els.dateEnd.addEventListener("change", applyDateFields);
+      els.dateToday.addEventListener("click", () => { customStart = customEnd = null; els.reportRange.value = "today"; render(); syncDates(); });
+      els.dateWeek.addEventListener("click", () => { customStart = customEnd = null; els.reportRange.value = "week"; render(); syncDates(); });
+      els.dateClear.addEventListener("click", () => { customStart = customEnd = null; els.reportRange.value = "week"; render(); syncDates(); });
       els.mealsClose.addEventListener("click", closeMeals);
       els.mealsModal.addEventListener("click", e => { if (e.target === els.mealsModal) closeMeals(); });
+      els.achBtn.addEventListener("click", openAchievements);
+      els.modalClose.addEventListener("click", closeModal);
+      els.modal.addEventListener("click", e => { if (e.target === els.modal) closeModal(); });
       els.mealsForm.addEventListener("submit", e => { e.preventDefault(); addMealUI(); });
       els.mealsList.addEventListener("click", e => {
         const del = e.target.closest(".mdel"), edit = e.target.closest(".medit");
@@ -990,13 +1095,6 @@
         }
       });
 
-      els.prevWeek.addEventListener("click", () => moveWeek(-7));
-      els.nextWeek.addEventListener("click", () => moveWeek(7));
-      els.thisWeek.addEventListener("click", () => {
-        els.weekStart.value = toIso(getMonday(new Date()));
-        render();
-      });
-
       els.chatForm.addEventListener("submit", e => { e.preventDefault(); sendChat(); });
       els.chatInput.addEventListener("input", autoGrowChat);
       els.chatInput.addEventListener("keydown", e => {
@@ -1006,13 +1104,20 @@
       els.aiEngine.addEventListener("change", () => { populateModels(els.aiEngine.value, ""); saveAiConfig(); });
       els.aiModel.addEventListener("change", saveAiConfig);
       els.aiEffort.addEventListener("change", saveAiConfig);
-      loadChatHistory();
+      els.chatList.addEventListener("click", e => {
+        const del = e.target.closest(".chat-item-del");
+        if (del) { e.stopPropagation(); return deleteChat(del.dataset.id); }
+        const item = e.target.closest(".chat-item");
+        if (item) openSession(item.dataset.id);
+      });
+      els.chatNew.addEventListener("click", newChat);
+      els.chatToggle.addEventListener("click", () => els.chatSidebar.classList.toggle("collapsed"));
+      if (matchMedia("(max-width: 720px)").matches) els.chatSidebar.classList.add("collapsed");
+      initChat();
 
-      els.profileButton.addEventListener("click", () => toggleProfile());
-      els.closeProfile.addEventListener("click", () => toggleProfile(false));
-      document.addEventListener("click", closeProfileOnOutsideClick);
+      els.profileButton.addEventListener("click", openSettings);
       document.addEventListener("keydown", event => {
-        if (event.key === "Escape") { toggleProfile(false); closeMeals(); }
+        if (event.key === "Escape") { closeModal(); closeMeals(); }
       });
 
       [els.profileName, els.profileSex, els.profileAge, els.profileHeight, els.profileWeight].forEach(input => {
@@ -1044,18 +1149,18 @@
       updateProfileSummary();
     }
 
-    function toggleProfile(force) {
-      const shouldOpen = force === undefined ? els.profilePopover.classList.contains("hidden") : force;
-      els.profilePopover.classList.toggle("hidden", !shouldOpen);
-      els.profileButton.setAttribute("aria-expanded", shouldOpen ? "true" : "false");
-      if (shouldOpen) setTimeout(() => els.profileName.focus(), 0);
+    // ---- Unified modal shell (Settings / Achievements / Dates share one popout) ----
+    function openModal(panel, title) {
+      els.modalTitle.textContent = title;
+      els.panelSettings.classList.toggle("hidden", panel !== "settings");
+      els.panelAch.classList.toggle("hidden", panel !== "ach");
+      els.panelDates.classList.toggle("hidden", panel !== "dates");
+      els.modal.classList.remove("hidden");
+      els.modal.querySelector(".modal-body").scrollTop = 0;
+      document.body.classList.add("no-scroll");
     }
-
-    function closeProfileOnOutsideClick(event) {
-      if (els.profilePopover.classList.contains("hidden")) return;
-      if (els.profilePopover.contains(event.target) || els.profileButton.contains(event.target)) return;
-      toggleProfile(false);
-    }
+    function closeModal() { els.modal.classList.add("hidden"); document.body.classList.remove("no-scroll"); }
+    function openSettings() { openModal("settings", "Settings"); setTimeout(() => els.profileName.focus(), 0); }
 
     function updateProfileAndRefresh() {
       state.profile.name = els.profileName.value;
@@ -1085,16 +1190,56 @@
       refreshDerived();
     }
 
-    function moveWeek(days) {
-      els.weekStart.value = toIso(addDays(parseIso(els.weekStart.value), days));
-      render();
+    let chatLastDay = "";
+    let currentSession = null;
+
+    async function loadSessions(selectId) {
+      let sessions = [];
+      try { sessions = await (await fetch("/api/chat/sessions")).json(); } catch (e) { /* offline */ }
+      if (selectId) currentSession = Number(selectId);
+      else if (currentSession && !sessions.some(s => s.id === currentSession)) currentSession = null;
+      if (!currentSession && sessions.length) currentSession = sessions[0].id;
+      renderSessionList(sessions);
+      return sessions;
     }
 
-    let chatLastDay = "";
+    function renderSessionList(sessions) {
+      els.chatList.innerHTML = sessions.map(s => `
+        <div class="chat-item ${s.id === currentSession ? "active" : ""}" data-id="${s.id}">
+          <span class="chat-item-title">${escapeHtml(s.title || "New chat")}</span>
+          <button class="chat-item-del" data-id="${s.id}" type="button" title="Delete" aria-label="Delete">×</button>
+        </div>`).join("");
+    }
 
-    async function loadChatHistory() {
-      try { renderChatHistory(await (await fetch("/api/chat")).json()); }
+    async function initChat() {
+      const sessions = await loadSessions();
+      if (!sessions.length) await newChat();
+      else await openSession(currentSession);
+    }
+
+    async function openSession(id) {
+      currentSession = Number(id);
+      els.chatList.querySelectorAll(".chat-item").forEach(el => el.classList.toggle("active", Number(el.dataset.id) === currentSession));
+      if (matchMedia("(max-width: 720px)").matches) els.chatSidebar.classList.add("collapsed");
+      try { renderChatHistory(await (await fetch("/api/chat?session=" + id)).json()); }
       catch (e) { renderChatHistory([]); }
+    }
+
+    async function newChat() {
+      try {
+        const s = await (await fetch("/api/chat/sessions", { method: "POST" })).json();
+        await loadSessions(s.id);
+        await openSession(s.id);
+        els.chatInput.focus();
+      } catch (e) { /* offline */ }
+    }
+
+    async function deleteChat(id) {
+      id = Number(id) || currentSession;
+      if (!id) return;
+      try { await fetch("/api/chat/sessions/" + id, { method: "DELETE" }); } catch (e) { /* offline */ }
+      if (id === currentSession) currentSession = null;
+      await initChat();
     }
 
     function renderChatHistory(msgs) {
@@ -1137,21 +1282,21 @@
         const res = await fetch("/api/ai", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message, today: toIso(new Date()) })
+          body: JSON.stringify({ message, today: toIso(new Date()), sessionId: currentSession })
         });
         const data = await res.json();
         if (!res.ok || data.error) throw new Error(data.error || "AI request failed");
+        if (data.sessionId) currentSession = data.sessionId;
         const touched = [...(data.changes || []), ...(data.meals || [])];
         if (touched.length) {
           state = await loadState();
           populateProfileInputs();
           if (syncProfileWeightToLatest()) persistProfile();
-          const last = touched[touched.length - 1].date;
-          els.weekStart.value = toIso(getMonday(parseIso(last)));
           render();
         }
         pending.classList.remove("typing");
         pending.textContent = data.answer || "Done.";
+        loadSessions(currentSession);   // refresh titles/order, keep current selected
       } catch (err) {
         pending.classList.remove("typing");
         pending.textContent = "⚠ " + err.message;
@@ -1220,12 +1365,13 @@
       mealDate = date;
       els.mealsTitle.textContent = "Meals · " + prettyDate(date);
       els.mealsModal.classList.remove("hidden");
+      document.body.classList.add("no-scroll");
       loadMeals(date);
       loadSuggestions();
       setTimeout(() => els.mealName.focus(), 0);
     }
 
-    function closeMeals() { els.mealsModal.classList.add("hidden"); }
+    function closeMeals() { els.mealsModal.classList.add("hidden"); document.body.classList.remove("no-scroll"); }
 
     async function loadMeals(date) {
       try {
@@ -1348,30 +1494,395 @@
         .map(c => `<div class="streak" title="${c.n} ${c.label}">${c.icon} ${c.n}</div>`).join("");
     }
 
+    // ---- Gamification: XP, levels, achievements, celebrations ----
+    function goalCtx() {
+      return {
+        stepGoal: num(state.settings.stepsGoal, 0),
+        proteinTarget: macroTargets().protein,
+        dailyDeficit: num(state.settings.weeklyLossKg, 1) * 7700 / 7
+      };
+    }
+
+    function gameStats() {
+      const { stepGoal, proteinTarget } = goalCtx();
+      const loggedP = r => r.intake != null || r.active != null || r.steps != null || r.enteredWeight != null;
+      const defP = r => r.intake != null && r.deficit > 0;
+      const stepP = r => stepGoal && r.steps != null && r.steps >= stepGoal;
+      const proP = r => proteinTarget && r.protein != null && r.protein >= proteinTarget;
+      const perfP = r => defP(r) && stepP(r) && proP(r);
+      const dailyGoal = num(state.settings.weeklyLossKg, 1) * 7700 / 7;
+      const dates = Object.keys(state.entries).sort();
+      const R = {}; for (const d of dates) R[d] = rowData(d);   // one rowData pass, reused below
+      let loggedDays = 0, deficitDays = 0, stepDays = 0, proteinDays = 0, perfectDays = 0;
+      let surplusDays = 0, weighDays = 0, macroDays = 0, weekendDays = 0;
+      let totalSteps = 0, maxSteps = 0, totalDeficit = 0, maxDeficit = 0, maxProtein = 0;
+      let goldilocks = false, overachiever = false, comeback = false, phoenix = false, prevLogged = null;
+      // silly metrics
+      let maxIntake = 0, minIntake = Infinity, maxSurplus = 0, maxCarbs = 0, maxFat = 0;
+      let lazyDays = 0, fullLogDays = 0, moveButSurplus = false, weekendSurplus = false, jan1 = false, dejavu = false;
+      const intakeSeen = {};
+      for (const d of dates) {
+        const r = R[d];
+        const dow = parseIso(d).getDay(), weekend = dow === 0 || dow === 6;
+        if (loggedP(r)) {
+          loggedDays++;
+          if (weekend) weekendDays++;
+          if (prevLogged) { const gap = Math.round((parseIso(d) - parseIso(prevLogged)) / 86400000); if (gap >= 7) comeback = true; if (gap >= 30) phoenix = true; }
+          prevLogged = d;
+        }
+        if (defP(r)) deficitDays++;
+        if (stepP(r)) stepDays++;
+        if (proP(r)) proteinDays++;
+        if (perfP(r)) perfectDays++;
+        if (r.intake != null && r.deficit < 0) surplusDays++;
+        if (r.enteredWeight != null) weighDays++;
+        if (r.protein != null && r.carbs != null && r.fat != null) macroDays++;
+        if (r.steps != null) { totalSteps += r.steps; if (r.steps > maxSteps) maxSteps = r.steps; if (r.steps < 2000) lazyDays++; }
+        if (stepP(r) && r.deficit < 0) moveButSurplus = true;
+        if (r.intake != null) {
+          totalDeficit += r.deficit;
+          if (r.deficit > maxDeficit) maxDeficit = r.deficit;
+          if (Math.abs(r.deficit - dailyGoal) <= 50) goldilocks = true;
+          if (dailyGoal && r.deficit >= dailyGoal * 2) overachiever = true;
+          if (r.intake > maxIntake) maxIntake = r.intake;
+          if (r.intake > 0 && r.intake < minIntake) minIntake = r.intake;
+          if (-r.deficit > maxSurplus) maxSurplus = -r.deficit;
+          if (weekend && r.deficit < 0) weekendSurplus = true;
+          if (intakeSeen[r.intake]) dejavu = true; else intakeSeen[r.intake] = 1;
+        }
+        if (r.carbs != null && r.carbs > maxCarbs) maxCarbs = r.carbs;
+        if (r.fat != null && r.fat > maxFat) maxFat = r.fat;
+        if (r.protein != null && r.protein > maxProtein) maxProtein = r.protein;
+        if (r.intake != null && r.steps != null && r.enteredWeight != null) fullLogDays++;
+        if (d.slice(5) === "01-01") jan1 = true;
+      }
+      const longestRun = pred => {       // longest run of consecutive calendar days (best-ever, never re-locks)
+        if (!dates.length) return 0;
+        let d = parseIso(dates[0]); const end = parseIso(dates[dates.length - 1]);
+        let best = 0, cur = 0;
+        while (d <= end) { const r = R[toIso(d)]; if (r && pred(r)) { cur++; if (cur > best) best = cur; } else cur = 0; d = addDays(d, 1); }
+        return best;
+      };
+      const weights = dates.map(d => R[d].enteredWeight).filter(v => v != null);
+      const startW = weights.length ? weights[0] : null, curW = latestEnteredWeight();
+      const lost = (startW != null && curW != null) ? Math.max(0, startW - curW) : 0;
+      const goalW = num(state.settings.weightGoal, 0);
+      const halfway = (startW != null && curW != null && goalW && startW > goalW) ? (startW - curW) >= (startW - goalW) / 2 : false;
+      return {
+        loggedDays, deficitDays, stepDays, proteinDays, perfectDays,
+        surplusDays, weighDays, macroDays, weekendDays,
+        totalSteps, maxSteps, totalDeficit, maxDeficit, maxProtein,
+        goldilocks, overachiever, comeback, phoenix,
+        maxIntake, minIntake, maxSurplus, maxCarbs, maxFat, lazyDays, fullLogDays, moveButSurplus, weekendSurplus, jan1, dejavu, halfway,
+        bestLog: longestRun(loggedP), bestDeficit: longestRun(defP), bestStep: longestRun(stepP),
+        bestProtein: longestRun(proP), bestPerfect: longestRun(perfP),
+        lost, curW, goalW, logStreak: dailyStreak(loggedP)
+      };
+    }
+
+    function totalXP(g) { return g.loggedDays * 10 + g.deficitDays * 15 + g.stepDays * 10 + g.proteinDays * 10 + g.perfectDays * 20; }
+
+    function levelInfo(xp) {
+      let lvl = 1, need = 100, used = 0;
+      while (xp >= used + need) { used += need; lvl++; need = 100 + (lvl - 1) * 50; }
+      return { level: lvl, into: xp - used, need, total: xp };
+    }
+
+    const AT = (id, ico, name, desc, done, cat) => ({ id, ico, name, desc, done, cat });
+    // Totals and streaks deliberately use DIFFERENT thresholds so one never trivially unlocks another.
+    const ACHIEVEMENTS = [
+      // Consistency — total days logged (any days)
+      AT("log1", "👣", "First step", "Log your first day", g => g.loggedDays >= 1, "Consistency"),
+      AT("log14", "📅", "Two weeks in", "Log 14 days total", g => g.loggedDays >= 14, "Consistency"),
+      AT("log50", "📔", "Regular", "Log 50 days total", g => g.loggedDays >= 50, "Consistency"),
+      AT("log100", "💯", "Centurion", "Log 100 days total", g => g.loggedDays >= 100, "Consistency"),
+      AT("log250", "🧱", "Bricklayer", "Log 250 days total", g => g.loggedDays >= 250, "Consistency"),
+      AT("log500", "🏛️", "Architect", "Log 500 days total", g => g.loggedDays >= 500, "Consistency"),
+      AT("log750", "🗿", "Monument", "Log 750 days total", g => g.loggedDays >= 750, "Consistency"),
+      AT("weekend2", "🛋️", "Weekend warrior", "Log on 2 weekend days", g => g.weekendDays >= 2, "Consistency"),
+      AT("weekend20", "🏖️", "No days off", "Log on 20 weekend days", g => g.weekendDays >= 20, "Consistency"),
+      AT("comeback", "🪃", "Comeback kid", "Log again after a 7+ day break", g => g.comeback, "Consistency"),
+      AT("phoenix", "🐦‍🔥", "Phoenix", "Return after a 30+ day break", g => g.phoenix, "Consistency"),
+      // Streaks — longest run of consecutive days (best-ever; never re-locks)
+      AT("ls3", "✨", "Three in a row", "3-day logging streak", g => g.bestLog >= 3, "Streaks"),
+      AT("ls7", "🔥", "On a roll", "7-day logging streak", g => g.bestLog >= 7, "Streaks"),
+      AT("ls21", "🔥", "Habit formed", "21-day logging streak", g => g.bestLog >= 21, "Streaks"),
+      AT("ls45", "⚡", "Unstoppable", "45-day logging streak", g => g.bestLog >= 45, "Streaks"),
+      AT("ls90", "🌟", "Locked in", "90-day logging streak", g => g.bestLog >= 90, "Streaks"),
+      AT("ls180", "🛡️", "Relentless", "180-day logging streak", g => g.bestLog >= 180, "Streaks"),
+      AT("ls365", "👑", "Year-long flame", "365-day logging streak", g => g.bestLog >= 365, "Streaks"),
+      AT("ds5", "🔻", "Steady cut", "5-day deficit streak", g => g.bestDeficit >= 5, "Streaks"),
+      AT("ds14", "🗡️", "Sharp", "14-day deficit streak", g => g.bestDeficit >= 14, "Streaks"),
+      AT("ds30", "⚔️", "Iron discipline", "30-day deficit streak", g => g.bestDeficit >= 30, "Streaks"),
+      AT("ds60", "🏆", "Forged", "60-day deficit streak", g => g.bestDeficit >= 60, "Streaks"),
+      AT("prs7", "🍖", "Protein week", "7-day protein streak", g => g.bestProtein >= 7, "Streaks"),
+      AT("prs21", "🦾", "Protein machine", "21-day protein streak", g => g.bestProtein >= 21, "Streaks"),
+      AT("sts10", "🥾", "Step streak", "10-day step-goal streak", g => g.bestStep >= 10, "Streaks"),
+      AT("sts30", "🧭", "Pathfinder", "30-day step-goal streak", g => g.bestStep >= 30, "Streaks"),
+      // Deficit — total days under maintenance
+      AT("def10", "📉", "Deficit habit", "10 days in a deficit", g => g.deficitDays >= 10, "Deficit"),
+      AT("def30", "🪓", "Whittler", "30 days in a deficit", g => g.deficitDays >= 30, "Deficit"),
+      AT("def75", "✂️", "Trimming down", "75 days in a deficit", g => g.deficitDays >= 75, "Deficit"),
+      AT("def150", "💪", "Deficit machine", "150 days in a deficit", g => g.deficitDays >= 150, "Deficit"),
+      AT("def250", "🏔️", "Mountain mover", "250 days in a deficit", g => g.deficitDays >= 250, "Deficit"),
+      AT("burn1", "🍕", "Burned a pizza", "2,000 kcal total deficit", g => g.totalDeficit >= 2000, "Deficit"),
+      AT("burnkg", "🔥", "A kilo of fat gone", "7,700 kcal total deficit", g => g.totalDeficit >= 7700, "Deficit"),
+      AT("burn5", "🌋", "Five kilos torched", "38,500 kcal total deficit", g => g.totalDeficit >= 38500, "Deficit"),
+      AT("burn10", "☄️", "Ten kilos torched", "77,000 kcal total deficit", g => g.totalDeficit >= 77000, "Deficit"),
+      // Protein — total days hitting goal
+      AT("pro5", "🥩", "Protein pro", "Hit protein goal 5 days", g => g.proteinDays >= 5, "Protein"),
+      AT("pro25", "🍗", "Protein fiend", "Hit protein goal 25 days", g => g.proteinDays >= 25, "Protein"),
+      AT("pro75", "🧀", "Macro maven", "Hit protein goal 75 days", g => g.proteinDays >= 75, "Protein"),
+      AT("pro150", "🥚", "Protein century", "Hit protein goal 150 days", g => g.proteinDays >= 150, "Protein"),
+      AT("pbomb", "💣", "Protein bomb", "150 g protein in one day", g => g.maxProtein >= 150, "Protein"),
+      AT("pbeast", "🦬", "Protein beast", "200 g protein in one day", g => g.maxProtein >= 200, "Protein"),
+      // Movement — total step-goal days + step totals
+      AT("st7", "👟", "Mover", "Hit step goal 7 days", g => g.stepDays >= 7, "Movement"),
+      AT("st30", "🚶", "Walker", "Hit step goal 30 days", g => g.stepDays >= 30, "Movement"),
+      AT("st100", "🏃", "Strider", "Hit step goal 100 days", g => g.stepDays >= 100, "Movement"),
+      AT("st200", "🏞️", "Trailblazer", "Hit step goal 200 days", g => g.stepDays >= 200, "Movement"),
+      AT("steps100k", "🥾", "100K club", "100,000 steps total", g => g.totalSteps >= 100000, "Movement"),
+      AT("steps500k", "🗺️", "Half-million", "500,000 steps total", g => g.totalSteps >= 500000, "Movement"),
+      AT("steps1m", "🌍", "Step millionaire", "1,000,000 steps total", g => g.totalSteps >= 1000000, "Movement"),
+      AT("steps5m", "🚀", "Around the world", "5,000,000 steps total", g => g.totalSteps >= 5000000, "Movement"),
+      AT("bigstep15", "🏃‍♂️", "Big day out", "15,000 steps in a day", g => g.maxSteps >= 15000, "Movement"),
+      AT("bigstep20", "🏅", "Marathoner", "20,000 steps in a day", g => g.maxSteps >= 20000, "Movement"),
+      AT("bigstep30", "🦿", "Ultra", "30,000 steps in a day", g => g.maxSteps >= 30000, "Movement"),
+      // Perfect days (deficit + steps + protein all hit)
+      AT("pf1", "🌟", "Perfect day", "One perfect day", g => g.perfectDays >= 1, "Perfect"),
+      AT("pf10", "💎", "Ten perfect", "10 perfect days", g => g.perfectDays >= 10, "Perfect"),
+      AT("pf40", "🪩", "Perfectionist", "40 perfect days", g => g.perfectDays >= 40, "Perfect"),
+      AT("pf100", "🌠", "Flawless hundred", "100 perfect days", g => g.perfectDays >= 100, "Perfect"),
+      AT("pfs3", "⭐", "Hat trick", "3 perfect days in a row", g => g.bestPerfect >= 3, "Perfect"),
+      AT("pfs7", "💠", "Perfect week", "7 perfect days in a row", g => g.bestPerfect >= 7, "Perfect"),
+      AT("pfs21", "🔱", "Untouchable", "21 perfect days in a row", g => g.bestPerfect >= 21, "Perfect"),
+      // Weight
+      AT("kg1", "🎯", "Down a kilo", "Lose 1 kg from your start", g => g.lost >= 1, "Weight"),
+      AT("kg2", "📍", "Two down", "Lose 2 kg from your start", g => g.lost >= 2, "Weight"),
+      AT("kg5", "🏆", "Five down", "Lose 5 kg from your start", g => g.lost >= 5, "Weight"),
+      AT("kg10", "🥇", "Ten down", "Lose 10 kg from your start", g => g.lost >= 10, "Weight"),
+      AT("kg15", "🚀", "Fifteen down", "Lose 15 kg from your start", g => g.lost >= 15, "Weight"),
+      AT("kg20", "🐐", "Twenty down", "Lose 20 kg from your start", g => g.lost >= 20, "Weight"),
+      AT("goalw", "🎉", "Goal weight!", "Reach your target weight", g => g.goalW && g.curW != null && g.curW <= g.goalW, "Weight"),
+      AT("weigh10", "⚖️", "Scale watcher", "Weigh in 10 days", g => g.weighDays >= 10, "Weight"),
+      AT("weigh50", "📊", "Trend tracker", "Weigh in 50 days", g => g.weighDays >= 50, "Weight"),
+      // Tracking quality
+      AT("macro10", "🔬", "Macro counter", "Log full macros 10 days", g => g.macroDays >= 10, "Tracking"),
+      AT("macro50", "🧪", "Macro scientist", "Log full macros 50 days", g => g.macroDays >= 50, "Tracking"),
+      AT("bigcut", "🔪", "Big cut", "1,000 kcal deficit in a day", g => g.maxDeficit >= 1000, "Tracking"),
+      AT("deepcut", "🩸", "Deep cut", "1,500 kcal deficit in a day", g => g.maxDeficit >= 1500, "Tracking"),
+      AT("savage", "😤", "Savage cut", "2,500 kcal deficit in a day", g => g.maxDeficit >= 2500, "Tracking"),
+      // Quirky / funny (but real)
+      AT("cheat1", "😈", "Cheat day", "Have a surplus day", g => g.surplusDays >= 1, "Quirky"),
+      AT("cheat10", "🍩", "Treat yourself", "10 surplus days", g => g.surplusDays >= 10, "Quirky"),
+      AT("yoyo", "🪀", "Yo-yo", "30 surplus days", g => g.surplusDays >= 30, "Quirky"),
+      AT("goldilocks", "🐻", "Just right", "Land within 50 kcal of your daily target", g => g.goldilocks, "Quirky"),
+      AT("overachiever", "🚀", "Overachiever", "Double your daily deficit target in a day", g => g.overachiever, "Quirky"),
+      // Silly — still 100% real, just for fun
+      AT("couch", "🥔", "Couch potato", "A logged day under 2,000 steps", g => g.lazyDays >= 1, "Silly"),
+      AT("hibernate", "🦥", "Hibernation mode", "10 days under 2,000 steps", g => g.lazyDays >= 10, "Silly"),
+      AT("treadmill", "🏃‍♂️🍔", "Treadmill diet", "Hit your step goal but still eat over", g => g.moveButSurplus, "Silly"),
+      AT("mathhard", "🧮", "Math is hard", "Eat 1,000+ kcal over maintenance in a day", g => g.maxSurplus >= 1000, "Silly"),
+      AT("sentit", "🤢", "Sent it", "Eat 4,000+ kcal in a day", g => g.maxIntake >= 4000, "Silly"),
+      AT("monk", "🧘", "Fasting monk", "A day under 500 kcal", g => g.minIntake <= 500, "Silly"),
+      AT("carbed", "🍝", "Carb loaded", "400 g+ carbs in a day", g => g.maxCarbs >= 400, "Silly"),
+      AT("fatchance", "🥓", "Fat chance", "150 g+ fat in a day", g => g.maxFat >= 150, "Silly"),
+      AT("sunday", "🍻", "Sunday funday", "A surplus day on a weekend", g => g.weekendSurplus, "Silly"),
+      AT("newyear", "🎆", "New year, new me", "Log on January 1st", g => g.jan1, "Silly"),
+      AT("dejavu", "🌀", "Déjà vu", "Eat the exact same calories on two days", g => g.dejavu, "Silly"),
+      AT("completionist", "🧾", "Completionist", "Log food, steps and weight in one day", g => g.fullLogDays >= 1, "Silly"),
+      AT("thorough", "🤓", "Thorough", "Fully log 25 days (food, steps, weight)", g => g.fullLogDays >= 25, "Silly"),
+      AT("halfway", "🎶", "Halfway there", "Reach the halfway point to your goal weight", g => g.halfway, "Silly"),
+      AT("seesaw", "🤹", "On the seesaw", "Have 5 surplus AND 30 deficit days", g => g.surplusDays >= 5 && g.deficitDays >= 30, "Silly"),
+      // XP tiers
+      AT("xp5", "✦", "Rising", "Reach XP tier 5", (g, lv) => lv >= 5, "XP"),
+      AT("xp10", "✦", "Seasoned", "Reach XP tier 10", (g, lv) => lv >= 10, "XP"),
+      AT("xp20", "✦", "Veteran", "Reach XP tier 20", (g, lv) => lv >= 20, "XP"),
+      AT("xp30", "✦", "Elite", "Reach XP tier 30", (g, lv) => lv >= 30, "XP"),
+      AT("xp50", "✦", "Master", "Reach XP tier 50", (g, lv) => lv >= 50, "XP"),
+      AT("xp75", "✦", "Grandmaster", "Reach XP tier 75", (g, lv) => lv >= 75, "XP"),
+      AT("xp100", "✦", "Legend", "Reach XP tier 100", (g, lv) => lv >= 100, "XP")
+    ];
+
+    function unlockedSet(g) {
+      g = g || gameStats();
+      const lv = levelInfo(totalXP(g)).level, out = {};
+      for (const a of ACHIEVEMENTS) out[a.id] = !!a.done(g, lv);
+      return out;
+    }
+
+    // ---- Date picker panel (single calendar; pick a day or a start→end range, or type) ----
+    let calView = new Date(), calPending = null;
+    function openDates() {
+      const dates = rangeDates();
+      calView = parseIso(customStart || dates[0]); calView.setDate(1);
+      calPending = null;
+      els.calHint.textContent = "Tap a day, or a start then an end. Or type below.";
+      syncDates(); renderCal();
+      openModal("dates", "Pick dates");
+    }
+
+    function syncDates() {           // reflect the active window in the manual inputs
+      const dates = rangeDates();
+      els.dateStart.value = dates[0];
+      els.dateEnd.value = dates[dates.length - 1];
+    }
+
+    function applyDateFields() {
+      if (!els.dateStart.value || !els.dateEnd.value) return;
+      customStart = els.dateStart.value; customEnd = els.dateEnd.value;
+      calPending = null;
+      els.reportRange.value = "custom";
+      render(); renderCal();
+    }
+
+    function renderCal() {
+      els.calMonth.textContent = `${MONTH_FULL[calView.getMonth()]} ${calView.getFullYear()}`;
+      const first = new Date(calView.getFullYear(), calView.getMonth(), 1);
+      const gridStart = addDays(first, -first.getDay());     // back to Sunday
+      const todayIso = toIso(new Date());
+      const sel = rangeDates();
+      const lo = calPending || (els.reportRange.value === "custom" ? customStart : sel[0]);
+      const hi = calPending ? calPending : (els.reportRange.value === "custom" ? (customEnd || customStart) : sel[sel.length - 1]);
+      let html = "";
+      for (let i = 0; i < 42; i++) {
+        const d = addDays(gridStart, i), iso = toIso(d);
+        const cls = ["cal-day"];
+        if (d.getMonth() !== calView.getMonth()) cls.push("muted");
+        if (iso === todayIso) cls.push("today");
+        if (lo && hi && iso >= (lo < hi ? lo : hi) && iso <= (lo < hi ? hi : lo)) cls.push("in-range");
+        if (iso === lo || iso === hi) cls.push("edge");
+        html += `<button type="button" class="${cls.join(" ")}" data-iso="${iso}">${d.getDate()}</button>`;
+      }
+      els.calGrid.innerHTML = html;
+    }
+
+    function pickDay(iso) {
+      if (!calPending) {
+        calPending = iso; customStart = iso; customEnd = iso;
+        els.reportRange.value = "custom";
+        els.calHint.textContent = "Now pick an end day (or close for a single day)";
+        render(); syncDates(); renderCal();
+      } else {
+        let a = calPending, b = iso; if (a > b) { const t = a; a = b; b = t; }
+        customStart = a; customEnd = b; calPending = null;
+        els.reportRange.value = "custom";
+        els.calHint.textContent = "Range set. Adjust or close.";
+        render(); syncDates(); renderCal();
+      }
+    }
+
+    function renderGamebar() {
+      const g = gameStats(), xp = totalXP(g), li = levelInfo(xp), u = unlockedSet(g);
+      els.xpFill.style.width = Math.min(100, li.into / li.need * 100) + "%";
+      els.xpLabel.textContent = `✦ ${fmt(xp)} XP`;
+      els.xpNext.textContent = `${fmt(li.need - li.into)} to next`;
+      els.achChipCount.textContent = ACHIEVEMENTS.filter(a => u[a.id]).length;
+      checkCelebrations(li, u);
+    }
+
+    function openAchievements() {
+      const u = unlockedSet(), done = ACHIEVEMENTS.filter(a => u[a.id]).length;
+      const cats = [...new Set(ACHIEVEMENTS.map(a => a.cat))];
+      els.achGrid.innerHTML = cats.map(c => `
+        <div class="ach-cat">${c}</div>
+        <div class="ach-cards">${ACHIEVEMENTS.filter(a => a.cat === c).map(a => `
+          <div class="badge ${u[a.id] ? "unlocked" : "locked"}">
+            <span class="ico">${u[a.id] ? a.ico : "🔒"}</span>
+            <div><div class="b-name">${a.name}</div><div class="b-desc">${a.desc}</div></div>
+          </div>`).join("")}</div>`).join("");
+      openModal("ach", `🏅 Achievements · ${done}/${ACHIEVEMENTS.length}`);
+    }
+
+    const GAMI_KEY = "whittle-gami";
+    function checkCelebrations(li, u) {
+      let seen; try { seen = JSON.parse(localStorage.getItem(GAMI_KEY)) || {}; } catch (e) { seen = {}; }
+      const first = !seen.init;                       // first ever load: record, don't celebrate
+      const wasAch = seen.ach || {};
+      for (const a of ACHIEVEMENTS) {
+        if (u[a.id] && !wasAch[a.id]) { if (!first) celebrate(a.ico, "Achievement unlocked!", a.name); wasAch[a.id] = true; }
+      }
+      seen.ach = wasAch;
+      if (!first && seen.level != null && li.level > seen.level) celebrate("✦", "Milestone reached!", "Your XP bar filled up again");
+      seen.level = li.level;
+      const today = toIso(new Date()), r = rowData(today), { stepGoal, proteinTarget } = goalCtx();
+      const closed = r.intake != null && r.deficit > 0 && stepGoal && r.steps >= stepGoal && proteinTarget && r.protein >= proteinTarget;
+      if (!first && closed && seen.ringsDay !== today) { celebrate("🎯", "All rings closed!", "Perfect day — keep it up"); seen.ringsDay = today; }
+      seen.init = true;
+      try { localStorage.setItem(GAMI_KEY, JSON.stringify(seen)); } catch (e) { /* ignore */ }
+    }
+
+    function celebrate(ico, title, sub) { toast(ico, title, sub); confettiBurst(); }
+
+    function toast(ico, title, sub) {
+      const el = document.createElement("div");
+      el.className = "toast";
+      el.innerHTML = `<span class="t-ico">${ico}</span><div><div>${escapeHtml(title)}</div>${sub ? `<div class="t-sub">${escapeHtml(sub)}</div>` : ""}</div>`;
+      els.toasts.appendChild(el);
+      setTimeout(() => { el.style.transition = "opacity .4s, transform .4s"; el.style.opacity = "0"; el.style.transform = "translateY(10px)"; setTimeout(() => el.remove(), 400); }, 3600);
+    }
+
+    let confettiRunning = false;
+    function confettiBurst() {
+      const cv = els.confetti, ctx = cv.getContext("2d");
+      cv.style.display = "block";
+      const dpr = window.devicePixelRatio || 1;
+      cv.width = innerWidth * dpr; cv.height = innerHeight * dpr; ctx.scale(dpr, dpr);
+      const colors = ["#10b981", "#f59e0b", "#3b82f6", "#ef4444", "#a855f7"], parts = [];
+      for (let i = 0; i < 130; i++) parts.push({ x: innerWidth / 2 + (Math.random() - .5) * 80, y: innerHeight / 3, vx: (Math.random() - .5) * 13, vy: Math.random() * -13 - 4, g: .3 + Math.random() * .25, c: colors[i % colors.length], s: 4 + Math.random() * 6, rot: Math.random() * 6, vr: (Math.random() - .5) * .5 });
+      let t = 0; confettiRunning = true;
+      (function frame() {
+        ctx.clearRect(0, 0, innerWidth, innerHeight);
+        for (const p of parts) { p.vy += p.g; p.x += p.vx; p.y += p.vy; p.rot += p.vr; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 2, p.s, p.s * .6); ctx.restore(); }
+        if (++t < 130) requestAnimationFrame(frame); else { ctx.clearRect(0, 0, innerWidth, innerHeight); cv.style.display = "none"; confettiRunning = false; }
+      })();
+    }
+
+    const RANGE_LABELS = { today: "Today", week: "This week", "28": "Last 4 weeks", "56": "Last 8 weeks", "84": "Last 12 weeks", custom: "Custom" };
+    function rangeLabel() { return RANGE_LABELS[els.reportRange.value] || "Range"; }
+    let customStart = null, customEnd = null;   // ISO strings, set via the calendar popover
+
+    // The single dashboard timeframe — drives table, stats, and chart.
+    function rangeDates() {
+      const r = els.reportRange.value || "week";
+      const today = new Date();
+      if (r === "today") return [toIso(today)];
+      if (r === "week") { const m = getMonday(today); return Array.from({ length: 7 }, (_, i) => toIso(addDays(m, i))); }
+      if (r === "custom") {
+        if (!customStart) return [toIso(today)];
+        let a = parseIso(customStart), b = parseIso(customEnd || customStart);
+        if (a > b) { const t = a; a = b; b = t; }
+        const out = [];
+        for (let d = new Date(a); d <= b; d = addDays(d, 1)) { out.push(toIso(d)); if (out.length >= 366) break; }
+        return out;
+      }
+      const n = num(r, 28), out = [];
+      for (let i = n - 1; i >= 0; i--) out.push(toIso(addDays(today, -i)));
+      return out;
+    }
+
     function render() {
-      const rows = weekDates().map(date => rowData(date));
+      const dates = rangeDates();
+      els.asideTitle.textContent = rangeLabel();
+      const rows = dates.map(rowData);
       renderTable(rows);
       renderStats(rows);
       renderMacros(rows);
       renderChart();
       renderStreaks();
+      renderGamebar();
       updateProfileSummary();
     }
 
     function refreshDerived() {
-      const rows = weekDates().map(date => rowData(date));
+      const rows = rangeDates().map(rowData);
       updateCalculatedCells(rows);
       renderStats(rows);
       renderMacros(rows);
       renderChart();
       renderStreaks();
+      renderGamebar();
       updateProfileSummary();
-    }
-
-    function weekDates() {
-      const start = getMonday(parseIso(els.weekStart.value || toIso(new Date())));
-      els.weekStart.value = toIso(start);
-      return Array.from({ length: 7 }, (_, i) => toIso(addDays(start, i)));
     }
 
     function rowData(date) {
@@ -1507,16 +2018,18 @@
     function renderStats(rows) {
       const enteredRows = rows.filter(r => r.hasEnergyEntry);
       const daysEntered = enteredRows.length;
+      const n = rows.length || 1;
       const totalIntake = sum(enteredRows.map(r => r.intake || 0));
       const totalBurn = sum(enteredRows.map(r => r.totalBurn));
       const deficit = totalBurn - totalIntake;
       const weeklyLoss = num(state.settings.weeklyLossKg, 1);
-      const goal = weeklyLoss * 7700;
+      const dailyGoal = weeklyLoss * 7700 / 7;
+      const goal = dailyGoal * n;                       // target scales with the selected range
       const remainingDeficit = goal - deficit;
-      const remainingDays = Math.max(0, 7 - daysEntered);
+      const todayIso = toIso(new Date());
+      const remainingDays = rows.filter(r => !r.hasEnergyEntry && r.date >= todayIso).length;
       const currentWeight = lastKnownOrEstimatedWeight(rows) ?? numOrNull(state.profile.weightKg) ?? seed.profile.weightKg;
-      const restingForRemaining = bmrFor(currentWeight);
-      const caloriesLeftAtNoMoreActive = Math.max(0, remainingDays * restingForRemaining - remainingDeficit);
+      const caloriesLeft = Math.max(0, remainingDays * bmrFor(currentWeight) - remainingDeficit);
       const estKg = deficit / 7700;
       const average = daysEntered ? totalIntake / daysEntered : 0;
       const statusClass = deficit >= goal ? "good" : deficit >= goal * .75 ? "warn" : "";
@@ -1526,12 +2039,12 @@
       const weightChange = firstWeight !== null && lastWeight !== null ? lastWeight - firstWeight : null;
 
       els.stats.innerHTML = `
-        ${stat("Entered days", `${daysEntered}/7`, `${fmt(totalIntake)} eaten · ${fmt(totalBurn)} burned`)}
+        ${stat("Entered days", `${daysEntered}/${n}`, `${fmt(totalIntake)} eaten · ${fmt(totalBurn)} burned`)}
         ${stat("Deficit so far", fmt(deficit), `${estKg.toFixed(2)} kg theoretical fat loss`, statusClass)}
-        ${stat("Goal gap", remainingDeficit <= 0 ? "Goal hit" : fmt(remainingDeficit), remainingDeficit <= 0 ? `You are past the ${weeklyLoss} kg/week target.` : "Deficit still needed this week", remainingDeficit <= 0 ? "good" : "warn")}
-        ${stat("Calories left", fmt(caloriesLeftAtNoMoreActive), `With ${remainingDays} blank day${remainingDays === 1 ? "" : "s"} and no extra active calories`, caloriesLeftAtNoMoreActive > 0 ? "good" : "warn")}
-        ${stat("Avg intake", fmt(average), "Average across entered days")}
-        ${stat("Weight trend", weightChange === null ? "No data" : `${weightChange > 0 ? "+" : ""}${weightChange.toFixed(1)} kg`, knownWeights.length ? `${knownWeights.length} weigh-in${knownWeights.length === 1 ? "" : "s"} this week` : "Add weight to see trend", weightChange !== null && weightChange <= 0 ? "good" : "")}
+        ${stat("Goal gap", remainingDeficit <= 0 ? "Goal hit" : fmt(remainingDeficit), remainingDeficit <= 0 ? `Past the ${weeklyLoss} kg/week pace` : "Deficit still needed", remainingDeficit <= 0 ? "good" : "warn")}
+        ${stat("Calories left", fmt(caloriesLeft), `${remainingDays} blank day${remainingDays === 1 ? "" : "s"} left, no extra active`, caloriesLeft > 0 ? "good" : "warn")}
+        ${stat("Avg intake", fmt(average), "Per entered day")}
+        ${stat("Weight trend", weightChange === null ? "No data" : `${weightChange > 0 ? "+" : ""}${weightChange.toFixed(1)} kg`, knownWeights.length ? `${knownWeights.length} weigh-in${knownWeights.length === 1 ? "" : "s"}` : "Add weight to see trend", weightChange !== null && weightChange <= 0 ? "good" : "")}
       `;
     }
 
@@ -1581,19 +2094,14 @@
     // Aggregate the last N ISO weeks for the trend reports.
     // Build report buckets ending today: one per day (<=14 day ranges) or one per ISO week (longer).
     // Each bucket carries per-day values (averaged within the bucket) so scale is consistent across ranges.
-    function buildBuckets(range) {
-      const dayBucket = dt => bucketFromRows([rowData(toIso(dt))], `${dt.getDate()} ${MONTH_NAMES[dt.getMonth()]}`, DAY_NAMES[dt.getDay()]);
-      if (range === "today") return [dayBucket(new Date())];
-      if (range === "week") return weekDates().map(date => dayBucket(parseIso(date)));
-      const weeks = Math.ceil(num(range, 28) / 7);
-      const mon0 = getMonday(new Date());
-      const today = new Date();
+    function buildBuckets() {
+      const dates = rangeDates();
+      const lbl = d => { const dt = parseIso(d); return `${dt.getDate()} ${MONTH_NAMES[dt.getMonth()]}`; };
+      if (dates.length <= 14) return dates.map(d => bucketFromRows([rowData(d)], lbl(d), DAY_NAMES[parseIso(d).getDay()]));
       const out = [];
-      for (let w = weeks - 1; w >= 0; w--) {
-        const wkStart = addDays(mon0, -7 * w);
-        const rs = [];
-        for (let d = 0; d < 7; d++) { const dt = addDays(wkStart, d); if (dt > today) break; rs.push(rowData(toIso(dt))); }
-        out.push(bucketFromRows(rs, `${wkStart.getDate()} ${MONTH_NAMES[wkStart.getMonth()]}`, ""));
+      for (let i = 0; i < dates.length; i += 7) {
+        const chunk = dates.slice(i, i + 7);
+        out.push(bucketFromRows(chunk.map(rowData), lbl(chunk[0]), ""));
       }
       return out;
     }
@@ -1619,13 +2127,11 @@
     function renderChart() {
       const svg = els.chart;
       const type = els.chartType.value || "intake-burn";
-      const range = els.reportRange.value || "week";
-      const data = buildBuckets(range);
-      const avgNote = (range !== "today" && range !== "week") ? " · avg/day" : "";
-      els.chartTitle.textContent =
-        range === "today" ? "Today"
-        : range === "week" ? `Week of ${prettyDate(weekDates()[0])} to ${prettyDate(weekDates()[6])}`
-        : `Last ${Math.round(num(range, 28) / 7)} weeks`;
+      const dates = rangeDates();
+      const data = buildBuckets();
+      const avgNote = dates.length > 14 ? " · avg/day" : "";
+      const span = dates.length === 1 ? prettyDate(dates[0]) : `${prettyDate(dates[0])} – ${prettyDate(dates[dates.length - 1])}`;
+      els.chartTitle.textContent = `${rangeLabel()} · ${span}`;
       const col = {
         muted: themeColor("--muted"), text: themeColor("--text"),
         grid: themeColor("--grid"), axis: themeColor("--axis"),

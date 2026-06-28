@@ -45,6 +45,11 @@ db.exec(`
     role TEXT,
     text TEXT
   );
+  CREATE TABLE IF NOT EXISTS chat_session (
+    id      INTEGER PRIMARY KEY AUTOINCREMENT,
+    title   TEXT,
+    created TEXT DEFAULT (datetime('now'))
+  );
 `);
 
 function ensureColumn(table, col, decl) {
@@ -56,8 +61,17 @@ ensureColumn('settings', 'steps_goal', 'REAL');
 ensureColumn('entries', 'protein', 'REAL');
 ensureColumn('entries', 'carbs', 'REAL');
 ensureColumn('entries', 'fat', 'REAL');
+ensureColumn('chat', 'session_id', 'INTEGER');
 // Backfill goals for databases created before these columns existed.
 db.exec('UPDATE settings SET weekly_loss_kg = COALESCE(weekly_loss_kg, 1), steps_goal = COALESCE(steps_goal, 10000) WHERE id = 1');
+// One-time: bundle any pre-sessions chat messages into a single legacy conversation.
+{
+  const orphan = db.prepare('SELECT COUNT(*) AS n FROM chat WHERE session_id IS NULL').get().n;
+  if (orphan > 0) {
+    const info = db.prepare('INSERT INTO chat_session (title) VALUES (?)').run('Earlier chats');
+    db.prepare('UPDATE chat SET session_id = ? WHERE session_id IS NULL').run(info.lastInsertRowid);
+  }
+}
 
 const numOrNull = v => {
   if (v === "" || v === null || v === undefined) return null;
@@ -205,12 +219,43 @@ export function migrateIntakeToMeals() {
   })();
 }
 
-export function addChat(role, text, day) {
-  db.prepare('INSERT INTO chat (day, role, text) VALUES (?, ?, ?)').run(day, role, String(text ?? ''));
+export function addChat(role, text, day, sessionId) {
+  db.prepare('INSERT INTO chat (day, role, text, session_id) VALUES (?, ?, ?, ?)').run(day, role, String(text ?? ''), sessionId || null);
 }
 
-export function listChat(limit = 800) {
+export function listChat(sessionId, limit = 800) {
+  if (sessionId) return db.prepare('SELECT id, day, role, text FROM chat WHERE session_id = ? ORDER BY id ASC LIMIT ?').all(sessionId, limit);
   return db.prepare('SELECT id, day, role, text FROM chat ORDER BY id DESC LIMIT ?').all(limit).reverse();
+}
+
+export function createSession(title = 'New chat') {
+  const info = db.prepare('INSERT INTO chat_session (title) VALUES (?)').run(title);
+  return { id: info.lastInsertRowid, title };
+}
+
+export function listSessions() {
+  return db.prepare(`
+    SELECT s.id, s.title,
+      (SELECT COUNT(*) FROM chat c WHERE c.session_id = s.id) AS count,
+      (SELECT MAX(c.id) FROM chat c WHERE c.session_id = s.id) AS lastMsg
+    FROM chat_session s
+    ORDER BY COALESCE(lastMsg, s.id) DESC
+  `).all();
+}
+
+export function renameSession(id, title) {
+  db.prepare('UPDATE chat_session SET title = ? WHERE id = ?').run(String(title || 'New chat').slice(0, 80), id);
+}
+
+// Name an untitled session from its first message.
+export function titleSessionIfNew(id, text) {
+  const s = db.prepare('SELECT title FROM chat_session WHERE id = ?').get(id);
+  if (s && (!s.title || s.title === 'New chat')) renameSession(id, String(text || '').trim().slice(0, 60) || 'New chat');
+}
+
+export function deleteSession(id) {
+  db.prepare('DELETE FROM chat WHERE session_id = ?').run(id);
+  db.prepare('DELETE FROM chat_session WHERE id = ?').run(id);
 }
 
 export default db;
