@@ -2283,15 +2283,16 @@
           const over = raw > 1 ? (raw - 1) % 1 : 0;   // fractional lap past 100%
           if (has && raw > 0) mkArc(Math.min(1, raw));
           if (has && over > 0.002) {                  // overshoot end laps over the start
-            mkArc(over);
-            // Shadow only the last bit of the overshoot so the leading end casts a soft overlap shadow (no hard edge).
-            const segFrac = Math.min(over, 0.06), a0 = over - segFrac, C = 2 * Math.PI * rad;
-            const seg = circle(cx, cyc, rad, ring.color, sw);
-            seg.setAttribute("stroke-linecap", "round");
-            seg.setAttribute("stroke-dasharray", `${segFrac * C} ${C}`);
-            seg.setAttribute("transform", `rotate(${-90 + a0 * 360} ${cx} ${cyc})`);
-            seg.style.filter = "drop-shadow(0 1px 3px rgba(0,0,0,.55))";
-            svg.appendChild(seg);
+            // Soft shadow ONLY under the leading end: a blurred blob on the ring, then the arc covers its centre.
+            const td = (-90 + over * 360) * Math.PI / 180;
+            const sh = document.createElementNS(SVGNS, "circle");
+            sh.setAttribute("cx", cx + rad * Math.cos(td));
+            sh.setAttribute("cy", cyc + rad * Math.sin(td) + 3);
+            sh.setAttribute("r", sw / 2);
+            sh.setAttribute("fill", "rgba(0,0,0,0.5)");
+            sh.style.filter = "blur(3px)";
+            svg.appendChild(sh);
+            mkArc(over);   // overshoot arc covers the blob's centre, leaving a soft shadow at the end only
           }
           // Percentage sits just past the leading end (breathing room), rotated to follow the curve.
           const pct = has ? Math.round(raw * 100) : null;
