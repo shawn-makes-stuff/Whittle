@@ -12,6 +12,9 @@ already have installed (Claude, Codex, or Gemini) — **no API keys, no extra bi
 
 Works on **Windows, Linux, and macOS** and in **any modern browser**.
 
+<img width="877" height="1288" alt="image" src="https://github.com/user-attachments/assets/1c246774-ab7a-4423-b903-7db89b9833f4" />
+
+
 ---
 
 ## Requirements
