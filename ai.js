@@ -7,7 +7,7 @@ import os from 'node:os';
 // Uses your local Claude / Codex / Gemini CLI (existing plan) — no API key, no extra billing.
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CONFIG_PATH = join(__dirname, 'ai-config.json');
-const DEFAULTS = { engine: 'claude', model: 'haiku', effort: 'low' };
+const DEFAULTS = { engine: 'claude', model: 'haiku', effort: 'low', memory: 10 };
 const isWin = process.platform === 'win32';
 
 const ENGINES = {
@@ -27,6 +27,7 @@ export function setConfig(patch = {}) {
   next.engine = ENGINES[next.engine] ? next.engine : 'claude';
   next.model = typeof next.model === 'string' ? next.model.trim() : '';
   next.effort = ['low', 'medium', 'high'].includes(next.effort) ? next.effort : 'low';
+  next.memory = Number.isFinite(+next.memory) ? Math.min(100, Math.max(0, Math.round(+next.memory))) : 10;
   writeFileSync(CONFIG_PATH, JSON.stringify(next, null, 2));
   return next;
 }
@@ -43,10 +44,10 @@ export function getEngines() {
   return out;
 }
 
-export function parseEntry({ message, today, profile = {}, history = {} }) {
+export function parseEntry({ message, today, profile = {}, history = {}, notes = [], convo = [] }) {
   if (!message || !String(message).trim()) return Promise.reject(new Error('Empty message'));
   const cfg = getConfig();
-  const prompt = buildPrompt({ message, today, profile, history });
+  const prompt = buildPrompt({ message, today, profile, history, notes, convo, memory: cfg.memory });
   // Try the chosen engine first, then any other installed engine as a fallback.
   const order = [cfg.engine, ...Object.keys(ENGINES).filter(e => e !== cfg.engine)];
   const available = order.filter(e => cliExists(ENGINES[e].cmd));
@@ -134,7 +135,12 @@ function runGemini(prompt, cfg) {
   });
 }
 
-function buildPrompt({ message, today, profile, history }) {
+function buildPrompt({ message, today, profile, history, notes = [], convo = [], memory = 10 }) {
+  const n = Math.max(0, Math.round(memory)); // 0 = no conversational memory
+  const recent = n ? convo.slice(-n) : []; // last few turns for follow-up context
+  const transcript = recent.length
+    ? recent.map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.text}`).join('\n')
+    : 'none';
   const h = numOr(profile.heightCm, 175);
   const w = profile.weightKg ?? 'unknown';
   const sex = profile.sex || 'male';
@@ -145,10 +151,16 @@ function buildPrompt({ message, today, profile, history }) {
     `Existing records (date -> {intake kcal, active kcal, steps, weight kg, protein g, carbs g, fat g}; null = empty):`,
     JSON.stringify(history),
     ``,
+    `User's daily notes (date -> note text) — context the user wrote; use them when answering, but never log them as meals or changes:`,
+    notes.length ? JSON.stringify(notes) : 'none',
+    ``,
     `Formulas (use for answers and estimates):`,
     `- resting burn = Mifflin-St Jeor: (10*kg)+(6.25*cm)-(5*age)+(5 if male, -161 if female). kg = that day's weight, else most recent known weight, else profile weight.`,
     `- if active calories are empty, estimate from steps: round(steps * (0.414*${h}/100/1000) * kg * 0.5).`,
     `- total burn = resting + active(or estimate); deficit = total burn - intake.`,
+    ``,
+    `Earlier messages in this chat (oldest to newest) — use them to resolve follow-ups and references like "that", "instead", "the lunch I mentioned":`,
+    transcript,
     ``,
     `User message: """${message}"""`,
     ``,

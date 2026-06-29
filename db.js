@@ -38,6 +38,13 @@ db.exec(`
     created_at TEXT DEFAULT (datetime('now'))
   );
   CREATE INDEX IF NOT EXISTS idx_meals_date ON meals(date);
+  CREATE TABLE IF NOT EXISTS notes (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    date       TEXT NOT NULL,
+    text       TEXT NOT NULL,
+    created_at TEXT DEFAULT (datetime('now'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_notes_date ON notes(date);
   CREATE TABLE IF NOT EXISTS chat (
     id   INTEGER PRIMARY KEY AUTOINCREMENT,
     ts   TEXT DEFAULT (datetime('now')),
@@ -96,7 +103,9 @@ export function getState() {
     const e = entries[r.date] || (entries[r.date] = { intake: null, active: null, steps: null, weight: null, protein: null, carbs: null, fat: null });
     e.intake = r.intake; e.protein = r.protein; e.carbs = r.carbs; e.fat = r.fat;
   }
-  return { profile, settings, entries };
+  const notes = {};
+  for (const r of db.prepare('SELECT date, COUNT(*) AS count FROM notes GROUP BY date').all()) notes[r.date] = r.count;
+  return { profile, settings, entries, notes };
 }
 
 export function saveProfile(p = {}) {
@@ -193,6 +202,35 @@ export function deleteMeal(id) {
   return meal;
 }
 
+export function listNotes(date) {
+  return db.prepare('SELECT id, date, text, created_at AS createdAt FROM notes WHERE date = ? ORDER BY id').all(date);
+}
+
+export function allNotes() {
+  return db.prepare('SELECT date, text FROM notes ORDER BY date, id').all();
+}
+
+export function addNote(n = {}) {
+  const date = String(n.date || '').trim();
+  const text = String(n.text || '').trim();
+  if (!date || !text) return null;
+  const info = db.prepare('INSERT INTO notes (date, text) VALUES (?, ?)').run(date, text);
+  return db.prepare('SELECT id, date, text, created_at AS createdAt FROM notes WHERE id = ?').get(info.lastInsertRowid);
+}
+
+export function updateNote(id, n = {}) {
+  const text = String(n.text || '').trim();
+  if (!text) return deleteNote(id);
+  db.prepare('UPDATE notes SET text = ? WHERE id = ?').run(text, id);
+  return db.prepare('SELECT id, date, text, created_at AS createdAt FROM notes WHERE id = ?').get(id);
+}
+
+export function deleteNote(id) {
+  const note = db.prepare('SELECT id, date, text, created_at AS createdAt FROM notes WHERE id = ?').get(id);
+  if (note) db.prepare('DELETE FROM notes WHERE id = ?').run(id);
+  return note;
+}
+
 // Distinct past meals (most recent values per name) for type-ahead suggestions.
 export function mealSuggestions() {
   return db.prepare(`
@@ -237,7 +275,8 @@ export function listSessions() {
   return db.prepare(`
     SELECT s.id, s.title,
       (SELECT COUNT(*) FROM chat c WHERE c.session_id = s.id) AS count,
-      (SELECT MAX(c.id) FROM chat c WHERE c.session_id = s.id) AS lastMsg
+      (SELECT MAX(c.id) FROM chat c WHERE c.session_id = s.id) AS lastMsg,
+      (SELECT c.day FROM chat c WHERE c.session_id = s.id ORDER BY c.id DESC LIMIT 1) AS lastDay
     FROM chat_session s
     ORDER BY COALESCE(lastMsg, s.id) DESC
   `).all();

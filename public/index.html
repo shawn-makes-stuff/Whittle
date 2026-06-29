@@ -15,12 +15,14 @@
       "data-theme",
       localStorage.getItem("weekly-calorie-tracker-theme") === "light" ? "light" : "dark"
     );
+    if (localStorage.getItem("weekly-calorie-tracker-bg-anim") !== "on")
+      document.documentElement.setAttribute("data-bg-anim", "off");
   </script>
   <style>
     :root {
       color-scheme: dark;
-      --bg: #101314;
-      --panel: #181c1d;
+      --bg: #1a1d1e;
+      --panel: #222627;
       --text: #e7ece9;
       --muted: #94a09b;
       --line: #2a3032;
@@ -48,8 +50,9 @@
       --grid: rgba(255,255,255,.10);
       --axis: rgba(255,255,255,.22);
       --hatch: rgba(255,255,255,.35);
-      --glow1: rgba(16,185,129,.16);
-      --glow2: rgba(34,211,238,.10);
+      --glow1: rgba(34,150,110,.20);
+      --glow2: rgba(28,120,92,.17);
+      --glow3: rgba(40,90,74,.18);
       --shadow: rgba(0,0,0,.28);
       --radius: 18px;
     }
@@ -85,8 +88,9 @@
       --grid: rgba(0,0,0,.08);
       --axis: rgba(0,0,0,.18);
       --hatch: rgba(0,0,0,.30);
-      --glow1: rgba(5,150,105,.10);
-      --glow2: rgba(8,145,178,.07);
+      --glow1: rgba(5,150,105,.48);
+      --glow2: rgba(16,185,129,.40);
+      --glow3: rgba(4,120,87,.42);
       --shadow: rgba(20,40,32,.10);
     }
 
@@ -96,13 +100,48 @@
       margin: 0;
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       color: var(--text);
-      background:
-        radial-gradient(circle at top left, var(--glow1), transparent 34rem),
-        radial-gradient(circle at top right, var(--glow2), transparent 30rem),
-        var(--bg);
+      background: var(--bg);
       min-height: 100vh;
       transition: background-color .25s ease, color .25s ease;
     }
+
+    /* Slow-drifting glow layer behind everything — gives the gradient a gentle wave. */
+    /* Two oversized glow layers rotating at different speeds/directions = swirly, chaotic motion. */
+    body::before, body::after {
+      content: "";
+      position: fixed;
+      inset: -55%;
+      z-index: -1;
+      pointer-events: none;
+      will-change: transform;
+    }
+    body::before {
+      background:
+        radial-gradient(circle at 30% 32%, var(--glow1), transparent 26%),
+        radial-gradient(circle at 72% 60%, var(--glow2), transparent 28%);
+      animation: swirl-a 16s linear infinite;
+    }
+    body::after {
+      background:
+        radial-gradient(circle at 66% 26%, var(--glow3), transparent 24%),
+        radial-gradient(circle at 24% 74%, var(--glow2), transparent 30%);
+      animation: swirl-b 26s linear infinite;
+    }
+    @keyframes swirl-a {
+      0%   { transform: rotate(0deg)    translate(-7%, -5%) scale(1.15); }
+      33%  { transform: rotate(130deg)  translate(8%, 4%)   scale(1.32); }
+      66%  { transform: rotate(245deg)  translate(-4%, 8%)  scale(1.2); }
+      100% { transform: rotate(360deg)  translate(-7%, -5%) scale(1.15); }
+    }
+    @keyframes swirl-b {
+      0%   { transform: rotate(360deg)  translate(6%, 7%)   scale(1.25); }
+      50%  { transform: rotate(180deg)  translate(-9%, -6%) scale(1.4); }
+      100% { transform: rotate(0deg)    translate(6%, 7%)   scale(1.25); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      body::before, body::after { animation: none; }
+    }
+    [data-bg-anim="off"] body::before, [data-bg-anim="off"] body::after { animation: none; }
 
     .wrap {
       max-width: 1200px;
@@ -540,7 +579,7 @@
       min-height: 44px;
       max-height: 160px;
       resize: none;
-      overflow-y: auto;
+      overflow-y: hidden;
       border-radius: 14px;
       border: 1px solid var(--input-border);
       background: var(--input);
@@ -565,10 +604,9 @@
 
     .day-btn { background: transparent; border: none; color: var(--text); font: inherit; font-weight: 750; cursor: pointer; padding: 0; text-align: left; white-space: nowrap; }
     .day-btn:hover { color: var(--primary); transform: none; box-shadow: none; border: none; text-decoration: underline; }
-    .meal-col { text-align: center; width: 1%; white-space: nowrap; padding-left: 4px; padding-right: 4px; }
-    .meal-col .add-meal { margin: 0 auto; }
-    .intake-btn { width: 100%; text-align: right; }
-    .add-meal {
+    .meal-col, .note-col { text-align: center; width: 1%; white-space: nowrap; padding-left: 4px; padding-right: 4px; }
+    .meal-col .add-meal, .note-col .add-note { margin: 0 auto; }
+    .add-meal, .add-note {
       display: inline-grid; place-items: center;
       width: 24px; height: 24px; flex: none;
       border-radius: 7px; padding: 0;
@@ -576,7 +614,9 @@
       cursor: pointer;
     }
     .add-meal svg { fill: currentColor; display: block; }
-    .add-meal:hover { background: var(--accent-soft); color: var(--primary); border: none; transform: none; box-shadow: none; }
+    .add-note svg { fill: none; stroke: currentColor; display: block; }
+    .add-note.has-notes, .add-meal.has-meals { color: var(--primary); background: var(--accent-soft); }
+    .add-meal:hover, .add-note:hover { background: var(--accent-soft); color: var(--primary); border: none; transform: none; box-shadow: none; }
     .muted-cell { color: var(--muted); }
 
     .modal { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: grid; place-items: center; z-index: 50; padding: 20px; }
@@ -606,6 +646,32 @@
     .meal-item .me-save:hover, .meal-item .me-cancel:hover { transform: none; box-shadow: none; border: none; }
     .meals-add { display: grid; grid-template-columns: 1fr 72px 46px 46px 46px auto; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--card-border); }
     .meals-add input { min-width: 0; }
+    .notes-list { padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+    .notes-list:empty::before { content: "No notes for this day yet."; color: var(--muted); font-size: 13px; }
+    .note-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 11px; border: 1px solid var(--card-border); border-radius: 12px; background: var(--stat-bg); }
+    .note-text { flex: 1; min-width: 0; white-space: pre-wrap; word-break: break-word; font-size: 14px; line-height: 1.4; }
+    .note-item .nedit, .note-item .ndel { background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 15px; line-height: 1; padding: 2px 4px; }
+    .note-item .nedit:hover { color: var(--primary); transform: none; box-shadow: none; border: none; }
+    .note-item .ndel { font-size: 17px; }
+    .note-item .ndel:hover { color: var(--bad); transform: none; box-shadow: none; border: none; }
+    .note-item.editing { flex-wrap: wrap; gap: 8px; }
+    .note-item textarea {
+      width: 100%; min-width: 0; resize: vertical; min-height: 72px; max-height: 180px;
+      border-radius: 11px; border: 1px solid var(--input-border); background: var(--input);
+      color: var(--text); padding: 9px 10px; font: inherit; line-height: 1.4; outline: none;
+    }
+    .note-item textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .note-item .n-save, .note-item .n-cancel { background: transparent; border: none; cursor: pointer; font-size: 16px; line-height: 1; padding: 2px 6px; }
+    .note-item .n-save { color: var(--good); margin-left: auto; }
+    .note-item .n-save:hover, .note-item .n-cancel:hover { transform: none; box-shadow: none; border: none; }
+    .notes-add { display: flex; gap: 10px; align-items: flex-end; padding: 12px 14px; border-top: 1px solid var(--card-border); }
+    .notes-add textarea {
+      flex: 1; height: 46px; min-height: 46px; max-height: 160px; resize: none; overflow-y: hidden;
+      border-radius: 14px; border: 1px solid var(--input-border); background: var(--input);
+      color: var(--text); padding: 12px 14px; font: inherit; line-height: 1.4; outline: none;
+    }
+    .notes-add textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .notes-add button { border-radius: 14px; padding: 0 20px; height: 46px; flex: none; }
     @media (max-width: 560px) {
       .meals-add { grid-template-columns: 1fr 1fr; }
       .ach-cards { grid-template-columns: 1fr 1fr; }
@@ -764,6 +830,7 @@
             <tr>
               <th>Day</th>
               <th class="meal-col" aria-label="Meals"></th>
+              <th class="note-col" aria-label="Notes"></th>
               <th>Calories eaten</th>
               <th class="col-macro">Protein g</th>
               <th class="col-macro">Carbs g</th>
@@ -835,6 +902,17 @@
       </div>
     </div>
 
+    <div id="notesModal" class="modal hidden">
+      <div class="modal-card">
+        <div class="modal-head"><strong id="notesTitle">Notes</strong><button id="notesClose" type="button" aria-label="Close">×</button></div>
+        <div class="notes-list" id="notesList"></div>
+        <form class="notes-add" id="notesForm">
+          <textarea id="noteText" rows="1" placeholder="Add a note" aria-label="Note text"></textarea>
+          <button type="submit" class="primary">Save</button>
+        </form>
+      </div>
+    </div>
+
     <div id="modal" class="modal hidden">
       <div class="modal-card">
         <div class="modal-head"><strong id="modalTitle"></strong><button id="modalClose" type="button" aria-label="Close">×</button></div>
@@ -863,7 +941,23 @@
               </div>
             </div>
             <div class="pop-section">
+              <h4>Assistant</h4>
+              <div class="profile-grid">
+                <label class="profile-wide">Chat memory (messages)
+                  <input id="aiMemory" type="number" min="0" max="100" step="1" />
+                </label>
+              </div>
+              <p class="mini-note">How many recent messages the assistant remembers within a chat. Higher = more context, slower. 0 turns memory off.</p>
+            </div>
+            <div class="pop-section">
               <h4>Appearance</h4>
+              <div class="pop-row">
+                <span>Animated background</span>
+                <div class="seg" role="group" aria-label="Animated background">
+                  <button type="button" data-bganim-choice="on">On</button>
+                  <button type="button" data-bganim-choice="off">Off</button>
+                </div>
+              </div>
               <div class="pop-row">
                 <span>Theme</span>
                 <div class="seg" role="group" aria-label="Theme">
@@ -902,7 +996,7 @@
             </div>
             <div class="date-quick">
               <button id="dateToday" type="button">Today</button>
-              <button id="dateWeek" type="button">This week</button>
+              <button id="dateLastWeek" type="button">Last week</button>
               <button id="dateClear" type="button">Reset</button>
             </div>
           </div>
@@ -917,6 +1011,7 @@
 
   <script>
     const THEME_KEY = "weekly-calorie-tracker-theme";
+    const BG_ANIM_KEY = "weekly-calorie-tracker-bg-anim";
     const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const MONTH_FULL = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -925,7 +1020,8 @@
     const seed = {
       profile: { name: "Shawn", sex: "male", age: 35, heightCm: 178, weightKg: 102 },
       settings: { weeklyLossKg: 1, stepsGoal: 10000, weightGoal: 95 },
-      entries: {}
+      entries: {},
+      notes: {}
     };
 
     let state = JSON.parse(JSON.stringify(seed));
@@ -934,6 +1030,7 @@
       goalLoss: document.getElementById("goalLoss"),
       goalSteps: document.getElementById("goalSteps"),
       goalWeight: document.getElementById("goalWeight"),
+      aiMemory: document.getElementById("aiMemory"),
       chartType: document.getElementById("chartType"),
       calBtn: document.getElementById("calBtn"),
       calMonth: document.getElementById("calMonth"),
@@ -944,7 +1041,7 @@
       dateStart: document.getElementById("dateStart"),
       dateEnd: document.getElementById("dateEnd"),
       dateToday: document.getElementById("dateToday"),
-      dateWeek: document.getElementById("dateWeek"),
+      dateLastWeek: document.getElementById("dateLastWeek"),
       dateClear: document.getElementById("dateClear"),
       modal: document.getElementById("modal"),
       modalTitle: document.getElementById("modalTitle"),
@@ -976,6 +1073,12 @@
       mealF: document.getElementById("mealF"),
       mealSuggest: document.getElementById("mealSuggest"),
       mealsClose: document.getElementById("mealsClose"),
+      notesModal: document.getElementById("notesModal"),
+      notesTitle: document.getElementById("notesTitle"),
+      notesList: document.getElementById("notesList"),
+      notesForm: document.getElementById("notesForm"),
+      noteText: document.getElementById("noteText"),
+      notesClose: document.getElementById("notesClose"),
       chatLog: document.getElementById("chatLog"),
       chatForm: document.getElementById("chatForm"),
       chatInput: document.getElementById("chatInput"),
@@ -1007,6 +1110,7 @@
       profileMetaLabel: document.getElementById("profileMetaLabel"),
       profileCalcNote: document.getElementById("profileCalcNote"),
       themeButtons: document.querySelectorAll("[data-theme-choice]"),
+      bgAnimButtons: document.querySelectorAll("[data-bganim-choice]"),
       installRow: document.getElementById("installRow"),
       installBtn: document.getElementById("installBtn")
     };
@@ -1050,7 +1154,8 @@
       return {
         profile: { ...seed.profile, ...(input.profile || {}) },
         settings: { ...seed.settings, ...(input.settings || {}) },
-        entries: { ...(input.entries || {}) }
+        entries: { ...(input.entries || {}) },
+        notes: { ...(input.notes || {}) }
       };
     }
 
@@ -1063,13 +1168,19 @@
 
     async function api(method, url, body) {
       try {
-        await fetch(url, {
+        const res = await fetch(url, {
           method,
           headers: body ? { "Content-Type": "application/json" } : undefined,
           body: body ? JSON.stringify(body) : undefined
         });
+        if (!res.ok) {
+          console.warn("Save failed", method, url, res.status);
+          return null;
+        }
+        return res;
       } catch (err) {
         console.warn("Save failed", method, url, err);
+        return null;
       }
     }
 
@@ -1087,6 +1198,10 @@
       applyTheme(localStorage.getItem(THEME_KEY) || "dark");
       els.themeButtons.forEach(btn =>
         btn.addEventListener("click", () => applyTheme(btn.dataset.themeChoice, true))
+      );
+      applyBgAnim(localStorage.getItem(BG_ANIM_KEY) === "on");
+      els.bgAnimButtons.forEach(btn =>
+        btn.addEventListener("click", () => applyBgAnim(btn.dataset.bganimChoice === "on"))
       );
 
       populateProfileInputs();
@@ -1107,10 +1222,12 @@
       els.dateStart.addEventListener("change", applyDateFields);
       els.dateEnd.addEventListener("change", applyDateFields);
       els.dateToday.addEventListener("click", () => { customStart = customEnd = null; els.reportRange.value = "today"; render(); syncDates(); });
-      els.dateWeek.addEventListener("click", () => { customStart = customEnd = null; els.reportRange.value = "week"; render(); syncDates(); });
+      els.dateLastWeek.addEventListener("click", () => { const m = addDays(getMonday(new Date()), -7); customStart = toIso(m); customEnd = toIso(addDays(m, 6)); els.reportRange.value = "custom"; render(); syncDates(); });
       els.dateClear.addEventListener("click", () => { customStart = customEnd = null; els.reportRange.value = "week"; render(); syncDates(); });
       els.mealsClose.addEventListener("click", closeMeals);
       els.mealsModal.addEventListener("click", e => { if (e.target === els.mealsModal) closeMeals(); });
+      els.notesClose.addEventListener("click", closeNotes);
+      els.notesModal.addEventListener("click", e => { if (e.target === els.notesModal) closeNotes(); });
       els.achBtn.addEventListener("click", openAchievements);
       els.modalClose.addEventListener("click", closeModal);
       els.modal.addEventListener("click", e => { if (e.target === els.modal) closeModal(); });
@@ -1122,6 +1239,16 @@
         else if (edit) startEditMeal(edit.dataset.id);
         else if (save) saveMealEdit(save.closest(".meal-item"));
         else if (cancel) loadMeals(mealDate);
+      });
+      els.notesForm.addEventListener("submit", e => { e.preventDefault(); addNoteUI(); });
+      els.noteText.addEventListener("input", growNote);
+      els.notesList.addEventListener("click", e => {
+        const del = e.target.closest(".ndel"), edit = e.target.closest(".nedit");
+        const save = e.target.closest(".n-save"), cancel = e.target.closest(".n-cancel");
+        if (del) deleteNoteUI(del.dataset.id);
+        else if (edit) startEditNote(edit.dataset.id);
+        else if (save) saveNoteEdit(save.closest(".note-item"));
+        else if (cancel) loadNotes(noteDate);
       });
       els.mealName.addEventListener("input", () => {
         const m = mealMap[els.mealName.value.trim().toLowerCase()];
@@ -1142,6 +1269,7 @@
       els.aiEngine.addEventListener("change", () => { populateModels(els.aiEngine.value, ""); saveAiConfig(); });
       els.aiModel.addEventListener("change", saveAiConfig);
       els.aiEffort.addEventListener("change", saveAiConfig);
+      els.aiMemory.addEventListener("change", saveAiConfig);
       els.chatList.addEventListener("click", e => {
         const del = e.target.closest(".chat-item-del");
         if (del) { e.stopPropagation(); return deleteChat(del.dataset.id); }
@@ -1157,7 +1285,7 @@
 
       els.profileButton.addEventListener("click", openSettings);
       document.addEventListener("keydown", event => {
-        if (event.key === "Escape") { closeModal(); closeMeals(); }
+        if (event.key === "Escape") { closeModal(); closeMeals(); closeNotes(); }
       });
 
       [els.profileName, els.profileSex, els.profileAge, els.profileHeight, els.profileWeight].forEach(input => {
@@ -1174,6 +1302,13 @@
       localStorage.setItem(THEME_KEY, t);
       els.themeButtons.forEach(b => b.classList.toggle("active", b.dataset.themeChoice === t));
       if (rerender) render();
+    }
+
+    function applyBgAnim(on) {
+      if (on) document.documentElement.removeAttribute("data-bg-anim");
+      else document.documentElement.setAttribute("data-bg-anim", "off");
+      localStorage.setItem(BG_ANIM_KEY, on ? "on" : "off");
+      els.bgAnimButtons.forEach(b => b.classList.toggle("active", b.dataset.bganimChoice === (on ? "on" : "off")));
     }
 
     function themeColor(name) {
@@ -1246,7 +1381,7 @@
     function renderSessionList(sessions) {
       const newRow = `<div class="chat-item chat-new" data-new="1"><span class="chat-new-ico">＋</span> New chat</div>`;
       els.chatList.innerHTML = newRow + sessions.map(s => `
-        <div class="chat-item ${s.id === currentSession ? "active" : ""}" data-id="${s.id}">
+        <div class="chat-item ${s.id === currentSession ? "active" : ""}" data-id="${s.id}" title="${s.lastDay ? prettyDate(s.lastDay) : ""}">
           <span class="chat-item-title">${escapeHtml(s.title || "New chat")}</span>
           <button class="chat-item-del" data-id="${s.id}" type="button" title="Delete" aria-label="Delete">×</button>
         </div>`).join("");
@@ -1318,6 +1453,7 @@
       const pending = addBubble("ai", "");
       pending.classList.add("typing");
       pending.innerHTML = '<span class="typing-dots"><span></span><span></span><span></span></span>';
+      els.chatLog.scrollTop = els.chatLog.scrollHeight; // bubble grew with the dots — keep it in view
       els.chatSend.disabled = true;
       try {
         const res = await fetch("/api/ai", {
@@ -1360,7 +1496,9 @@
     function autoGrowChat() {
       const el = els.chatInput;
       el.style.height = "auto";
-      el.style.height = Math.min(el.scrollHeight, 160) + "px";
+      const full = el.scrollHeight;
+      el.style.height = Math.min(full, 160) + "px";
+      el.style.overflowY = full > 160 ? "auto" : "hidden";
     }
 
     const AI_MODELS = {
@@ -1388,13 +1526,15 @@
       els.aiEngine.value = cfg.engine || "claude";
       populateModels(els.aiEngine.value, cfg.model || "");
       els.aiEffort.value = cfg.effort || "low";
+      els.aiMemory.value = cfg.memory ?? 10;
     }
 
     function saveAiConfig() {
       api("PUT", "/api/ai/config", {
         engine: els.aiEngine.value,
         model: els.aiModel.value,
-        effort: els.aiEffort.value
+        effort: els.aiEffort.value,
+        memory: num(els.aiMemory.value, 10)
       });
     }
 
@@ -1487,6 +1627,99 @@
 
     async function refreshMeals() {
       await loadMeals(mealDate);
+      state = await loadState();
+      render();
+    }
+
+    let noteDate = null;
+    let currentNotes = [];
+
+    function openNotes(date) {
+      noteDate = date;
+      els.notesTitle.textContent = "Notes · " + prettyDate(date);
+      els.notesModal.classList.remove("hidden");
+      document.body.classList.add("no-scroll");
+      els.notesForm.reset();
+      growNote();
+      loadNotes(date);
+      setTimeout(() => els.noteText.focus(), 0);
+    }
+
+    function growNote() {
+      els.noteText.style.height = "auto";
+      const full = els.noteText.scrollHeight;
+      els.noteText.style.height = Math.min(full, 160) + "px";
+      els.noteText.style.overflowY = full > 160 ? "auto" : "hidden";
+    }
+
+    function closeNotes() { els.notesModal.classList.add("hidden"); document.body.classList.remove("no-scroll"); }
+
+    async function loadNotes(date) {
+      try {
+        const res = await fetch("/api/notes?date=" + encodeURIComponent(date));
+        if (!res.ok) throw new Error("Notes request failed: " + res.status);
+        currentNotes = await res.json();
+        renderNotesList(currentNotes);
+      } catch (e) { currentNotes = []; els.notesList.innerHTML = ""; }
+    }
+
+    function renderNotesList(notes) {
+      els.notesList.innerHTML = notes.map(n => `
+        <div class="note-item" data-id="${n.id}">
+          <div class="note-text">${escapeHtml(n.text || "")}</div>
+          <button class="nedit" type="button" data-id="${n.id}" title="Edit" aria-label="Edit">✎</button>
+          <button class="ndel" type="button" data-id="${n.id}" title="Remove" aria-label="Remove">×</button>
+        </div>`).join("");
+    }
+
+    function startEditNote(id) {
+      const n = currentNotes.find(x => String(x.id) === String(id));
+      const item = els.notesList.querySelector(`.note-item[data-id="${id}"]`);
+      if (!n || !item) return;
+      item.classList.add("editing");
+      item.innerHTML = `
+        <textarea class="n-text" rows="3" placeholder="Note">${escapeHtml(n.text || "")}</textarea>
+        <button class="n-save" type="button" title="Save" aria-label="Save">✓</button>
+        <button class="n-cancel" type="button" title="Cancel" aria-label="Cancel">✕</button>`;
+      item.querySelector(".n-text").focus();
+    }
+
+    async function saveNoteEdit(item) {
+      const saved = await api("PUT", "/api/notes/" + item.dataset.id, {
+        text: item.querySelector(".n-text").value.trim()
+      });
+      if (!saved) {
+        toast("!", "Note not saved", "The running app has not loaded the notes API yet.");
+        return;
+      }
+      await refreshNotes();
+    }
+
+    async function addNoteUI() {
+      const text = els.noteText.value.trim();
+      if (!text) return;
+      const saved = await api("POST", "/api/notes", { date: noteDate, text });
+      if (!saved) {
+        toast("!", "Note not saved", "The running app has not loaded the notes API yet.");
+        return;
+      }
+      els.notesForm.reset();
+      growNote();
+      els.noteText.focus();
+      await refreshNotes();
+    }
+
+    async function deleteNoteUI(id) {
+      const deleted = await api("DELETE", "/api/notes/" + id);
+      if (!deleted) {
+        toast("!", "Note not deleted", "The running app has not loaded the notes API yet.");
+        return;
+      }
+      await refreshNotes();
+    }
+
+    async function refreshNotes() {
+      await loadNotes(noteDate);
       state = await loadState();
       render();
     }
@@ -1815,7 +2048,7 @@
 
     function renderGamebar() {
       const g = gameStats(), xp = totalXP(g), li = levelInfo(xp), u = unlockedSet(g);
-      els.xpFill.style.width = Math.min(100, li.into / li.need * 100) + "%";
+      els.xpFill.style.width = Math.max(3, Math.min(100, li.into / li.need * 100)) + "%"; // tiny floor so it never looks empty
       els.xpLabel.textContent = `✦ ${fmt(xp)} XP`;
       els.xpNext.textContent = `${fmt(li.need - li.into)} to next`;
       els.achChipCount.textContent = ACHIEVEMENTS.filter(a => u[a.id]).length;
@@ -1988,10 +2221,12 @@
       els.dailyRows.innerHTML = "";
       for (const r of rows) {
         const tr = document.createElement("tr");
+        const noteCount = Number(state.notes?.[r.date] || 0);
         tr.innerHTML = `
           <td class="day"><button type="button" class="day-btn" data-date="${r.date}" title="View meals">${r.label}</button></td>
-          <td class="meal-col"><button type="button" class="add-meal" data-date="${r.date}" title="Meals" aria-label="Meals"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M2.5 10C2.5 6 7 4 12 4s9.5 2 9.5 6Z"/><rect x="2.5" y="10.9" width="19" height="2.8" rx="1.4"/><path d="M3.2 15h17.6c0 2.6-3.8 4.2-8.8 4.2S3.2 17.6 3.2 15Z"/></svg></button></td>
-          <td><button type="button" class="day-btn intake-btn" data-date="${r.date}" title="From meals — click to edit">${r.intake != null ? fmt(r.intake) : "—"}</button></td>
+          <td class="meal-col"><button type="button" class="add-meal${r.intake != null ? " has-meals" : ""}" data-date="${r.date}" title="${r.intake != null ? "Meals logged" : "Meals"}" aria-label="Meals"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M2.5 10C2.5 6 7 4 12 4s9.5 2 9.5 6Z"/><rect x="2.5" y="10.9" width="19" height="2.8" rx="1.4"/><path d="M3.2 15h17.6c0 2.6-3.8 4.2-8.8 4.2S3.2 17.6 3.2 15Z"/></svg></button></td>
+          <td class="note-col"><button type="button" class="add-note${noteCount ? " has-notes" : ""}" data-date="${r.date}" title="${noteCount ? noteCount + " note" + (noteCount === 1 ? "" : "s") : "Notes"}" aria-label="Notes"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button></td>
+          <td>${fmt(r.intake || 0)}</td>
           <td class="col-macro"><span class="muted-cell">${r.protein != null ? fmt(r.protein) : ""}</span></td>
           <td class="col-macro"><span class="muted-cell">${r.carbs != null ? fmt(r.carbs) : ""}</span></td>
           <td class="col-macro"><span class="muted-cell">${r.fat != null ? fmt(r.fat) : ""}</span></td>
@@ -2011,6 +2246,7 @@
         input.addEventListener("change", updateEntryFromInput);
       });
       els.dailyRows.querySelectorAll(".day-btn, .add-meal").forEach(b => b.addEventListener("click", () => openMeals(b.dataset.date)));
+      els.dailyRows.querySelectorAll(".add-note").forEach(b => b.addEventListener("click", () => openNotes(b.dataset.date)));
     }
 
     function updateEntryFromInput(event) {

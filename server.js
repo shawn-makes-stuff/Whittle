@@ -31,7 +31,8 @@ app.post('/api/ai', async (req, res) => {
     const day = today || new Date().toISOString().slice(0, 10);
     const session = sessionId || store.createSession().id;
     const state = store.getState();
-    const result = await parseEntry({ message, today: day, profile: state.profile, history: state.entries });
+    const convo = store.listChat(session); // prior turns in this session (current message not yet stored)
+    const result = await parseEntry({ message, today: day, profile: state.profile, history: state.entries, notes: store.allNotes(), convo });
     for (const { date, ...fields } of result.changes) store.mergeEntry(date, fields);
     for (const meal of result.meals) store.addMeal(meal);
     store.titleSessionIfNew(session, message);
@@ -57,6 +58,14 @@ app.post('/api/meals', (req, res) => res.json({ ok: true, meal: store.addMeal(re
 app.put('/api/meals/:id', (req, res) => { store.updateMeal(Number(req.params.id), req.body || {}); res.json({ ok: true }); });
 
 app.delete('/api/meals/:id', (req, res) => { store.deleteMeal(Number(req.params.id)); res.json({ ok: true }); });
+
+app.get('/api/notes', (req, res) => res.json(store.listNotes(req.query.date)));
+
+app.post('/api/notes', (req, res) => res.json({ ok: true, note: store.addNote(req.body || {}) }));
+
+app.put('/api/notes/:id', (req, res) => { store.updateNote(Number(req.params.id), req.body || {}); res.json({ ok: true }); });
+
+app.delete('/api/notes/:id', (req, res) => { store.deleteNote(Number(req.params.id)); res.json({ ok: true }); });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
