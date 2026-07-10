@@ -85,6 +85,10 @@ the install prompt is visible. On Linux/macOS the tray opens your default browse
   macros are **read-only** — they're the sum of that day's meals.
 - **Meals:** click a day (or its 🍔 icon) to add/edit/delete meals. Typing a meal name
   suggests ones you've logged before and auto-fills its calories/macros.
+- **Real burn (measured TDEE):** after ~2 weeks of logging (14 food days + a couple of
+  weigh-ins), the stats headline shows your *measured* maintenance calories, derived from
+  actual intake vs. your weight trend rather than a formula — plus a suggested daily intake
+  for your goal. Days with no food logged show no deficit (an untracked gap, not a phantom win).
 - **Reports:** the chart switches between Intake vs burn, Deficit, Weight, Steps,
   Macros, and **Goal rings** (deficit / steps / protein vs your goals). Macro targets
   are suggested from your goals and shown as faded bars.

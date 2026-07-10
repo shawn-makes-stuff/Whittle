@@ -14,7 +14,10 @@ const seed = {
   }
 };
 
+// Demo seeding disabled: the app now starts blank and stays blank on an empty DB.
+// (Set SEED=1 to restore the old sample-data behavior.)
 export function seedIfEmpty() {
+  if (process.env.SEED !== '1') return;
   if (!db.prepare('SELECT 1 FROM profile WHERE id = 1').get()) saveProfile(seed.profile);
   if (!db.prepare('SELECT 1 FROM settings WHERE id = 1').get()) saveSettings(seed.settings);
   if (db.prepare('SELECT COUNT(*) AS n FROM entries').get().n === 0) {

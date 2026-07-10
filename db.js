@@ -86,6 +86,13 @@ const numOrNull = v => {
   return Number.isFinite(n) ? n : null;
 };
 
+// Weight sanity clamp: reject non-positive or absurd (>1000 kg) values so a typo
+// can't poison BMR/interpolation. Out-of-range or blank -> null (ignored).
+const weightOrNull = v => {
+  const n = numOrNull(v);
+  return n !== null && n > 0 && n <= 1000 ? n : null;
+};
+
 export function getState() {
   const profile = db.prepare(
     'SELECT name, sex, age, height_cm AS heightCm, weight_kg AS weightKg FROM profile WHERE id = 1'
@@ -119,7 +126,7 @@ export function saveProfile(p = {}) {
     sex: p.sex ?? null,
     age: numOrNull(p.age),
     heightCm: numOrNull(p.heightCm),
-    weightKg: numOrNull(p.weightKg)
+    weightKg: weightOrNull(p.weightKg)
   });
 }
 
@@ -148,7 +155,7 @@ export function upsertEntry(date, e = {}) {
     intake: numOrNull(e.intake),
     active: numOrNull(e.active),
     steps: numOrNull(e.steps),
-    weight: numOrNull(e.weight),
+    weight: weightOrNull(e.weight),
     protein: numOrNull(e.protein),
     carbs: numOrNull(e.carbs),
     fat: numOrNull(e.fat)
@@ -159,8 +166,9 @@ export function upsertEntry(date, e = {}) {
 export function mergeEntry(date, partial = {}) {
   const cur = db.prepare('SELECT intake, active, steps, weight, protein, carbs, fat FROM entries WHERE date = ?').get(date) || {};
   const pick = k => { const v = numOrNull(partial[k]); return v !== null ? v : (cur[k] ?? null); };
+  const w = weightOrNull(partial.weight); // out-of-range weight -> keep the existing value
   upsertEntry(date, {
-    intake: pick('intake'), active: pick('active'), steps: pick('steps'), weight: pick('weight'),
+    intake: pick('intake'), active: pick('active'), steps: pick('steps'), weight: w !== null ? w : (cur.weight ?? null),
     protein: pick('protein'), carbs: pick('carbs'), fat: pick('fat')
   });
 }

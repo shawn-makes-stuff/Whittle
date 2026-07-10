@@ -167,6 +167,7 @@ function buildPrompt({ message, today, profile, history, notes = [], convo = [],
     `Resolve relative dates (yesterday, last Tuesday, a week ago) against today (${today}).`,
     `Log each food the user mentions as a MEAL with its own estimate: {date, name, kcal, protein, carbs, fat}. One object per distinct food/dish. Do the calorie math (e.g. 350 g at 300 cal/100g = 1050); estimate macros best-effort.`,
     `Use CHANGES only for non-food: steps (convert any distance with stride = 0.414*height_cm; ADD unless a total is stated), active calories (only if explicitly given as a burn), and weight (REPLACES). Never put food calories or macros in changes.`,
+    `If the user says they blew it / went way over / lost count for a day, don't mark anything special — log a single best-effort high MEAL estimate (e.g. name "Blowout — estimate", kcal ~3000-4000) so the day counts honestly.`,
     `Return ONLY this JSON:`,
     `{"answer":"<concise reply: answer the question or confirm what you logged>","meals":[{"date":"YYYY-MM-DD","name":"<food>","kcal":<int>,"protein":<int>,"carbs":<int>,"fat":<int>}],"changes":[{"date":"YYYY-MM-DD","steps":<int>,"active":<int>,"weight":<num>}]}`,
     `Integers except weight (one decimal). Include only the fields that apply. Use "meals":[] and "changes":[] when the user only asked a question.`
