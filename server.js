@@ -7,6 +7,7 @@ import { parseEntry, warmUp, getConfig, setConfig, getEngines } from './ai.js';
 
 seedIfEmpty();
 store.migrateIntakeToMeals();
+store.migrateNotesToJournal();
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -32,7 +33,7 @@ app.post('/api/ai', async (req, res) => {
     const session = sessionId || store.createSession().id;
     const state = store.getState();
     const convo = store.listChat(session); // prior turns in this session (current message not yet stored)
-    const result = await parseEntry({ message, today: day, profile: state.profile, history: state.entries, notes: store.allNotes(), convo });
+    const result = await parseEntry({ message, today: day, profile: state.profile, history: state.entries, notes: store.journalForAI(), convo });
     for (const { date, ...fields } of result.changes) store.mergeEntry(date, fields);
     for (const meal of result.meals) store.addMeal(meal);
     store.titleSessionIfNew(session, message);
@@ -66,6 +67,13 @@ app.post('/api/notes', (req, res) => res.json({ ok: true, note: store.addNote(re
 app.put('/api/notes/:id', (req, res) => { store.updateNote(Number(req.params.id), req.body || {}); res.json({ ok: true }); });
 
 app.delete('/api/notes/:id', (req, res) => { store.deleteNote(Number(req.params.id)); res.json({ ok: true }); });
+
+app.get('/api/journal', (req, res) => {
+  if (req.query.date) return res.json(store.getJournal(req.query.date));
+  res.json(store.listJournal());
+});
+
+app.put('/api/journal/:date', (req, res) => res.json({ ok: true, journal: store.saveJournal(req.params.date, (req.body || {}).html) }));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

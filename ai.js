@@ -60,8 +60,14 @@ export function parseEntry({ message, today, profile = {}, history = {}, notes =
     for (const eng of available) {
       // On a fallback engine, drop the configured model (it belongs to the chosen engine).
       const useCfg = eng === cfg.engine ? cfg : { ...cfg, model: '' };
-      try { return await ENGINES[eng].run(prompt, useCfg); }
-      catch (e) { lastErr = e; }
+      try {
+        const result = await ENGINES[eng].run(prompt, useCfg);
+        // Don't silently pretend the chosen engine answered — say who actually did.
+        if (eng !== cfg.engine) {
+          result.answer = `⚠️ ${ENGINES[cfg.engine].label} wasn't available, so ${ENGINES[eng].label} answered instead.\n\n${result.answer || ''}`;
+        }
+        return result;
+      } catch (e) { lastErr = e; }
     }
     throw new Error('AI request failed on all available engines. ' + (lastErr?.message || ''));
   })();
@@ -119,8 +125,11 @@ function runCodex(prompt, cfg) {
 
 function runGemini(prompt, cfg) {
   return new Promise((resolve, reject) => {
+    // Gemini defaults to interactive mode; -p forces headless. The prompt is fed on
+    // stdin (too big/quote-heavy for an argv arg), and an empty -p appends nothing to it.
     const parts = ['gemini'];
     if (cfg.model) parts.push('-m', cfg.model);
+    parts.push('-p', '""');
     const child = spawn(parts.join(' '), { shell: true, windowsHide: true });
     let out = '', err = '';
     child.stdout.on('data', d => { out += d; });

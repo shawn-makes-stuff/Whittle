@@ -45,6 +45,11 @@ db.exec(`
     created_at TEXT DEFAULT (datetime('now'))
   );
   CREATE INDEX IF NOT EXISTS idx_notes_date ON notes(date);
+  CREATE TABLE IF NOT EXISTS journal (
+    date       TEXT PRIMARY KEY,
+    html       TEXT,
+    updated_at TEXT DEFAULT (datetime('now'))
+  );
   CREATE TABLE IF NOT EXISTS chat (
     id   INTEGER PRIMARY KEY AUTOINCREMENT,
     ts   TEXT DEFAULT (datetime('now')),
@@ -93,6 +98,25 @@ const weightOrNull = v => {
   return n !== null && n > 0 && n <= 1000 ? n : null;
 };
 
+const escapeHtml = s => String(s ?? '').replace(/[&<>"']/g, c => (
+  { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+));
+// Plain text from journal HTML — for word counts and the AI context.
+const stripTags = html => String(html ?? '')
+  .replace(/<[^>]*>/g, ' ')
+  .replace(/&nbsp;/g, ' ')
+  .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+  .replace(/\s+/g, ' ')
+  .trim();
+const countWords = html => { const t = stripTags(html); return t ? t.split(/\s+/).length : 0; };
+// Defense-in-depth: drop scripts/styles/iframes and inline event handlers before storing.
+const sanitizeHtml = html => String(html ?? '')
+  .replace(/<\s*(script|style|iframe)[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi, '')
+  .replace(/<\s*(script|style|iframe)[^>]*\/?\s*>/gi, '')
+  .replace(/\son\w+\s*=\s*"[^"]*"/gi, '')
+  .replace(/\son\w+\s*=\s*'[^']*'/gi, '')
+  .replace(/\son\w+\s*=\s*[^\s>]+/gi, '');
+
 export function getState() {
   const profile = db.prepare(
     'SELECT name, sex, age, height_cm AS heightCm, weight_kg AS weightKg FROM profile WHERE id = 1'
@@ -112,7 +136,11 @@ export function getState() {
   }
   const notes = {};
   for (const r of db.prepare('SELECT date, COUNT(*) AS count FROM notes GROUP BY date').all()) notes[r.date] = r.count;
-  return { profile, settings, entries, notes };
+  const journal = {};
+  for (const r of db.prepare('SELECT date, html, updated_at AS updatedAt FROM journal').all()) {
+    journal[r.date] = { words: countWords(r.html), updatedAt: r.updatedAt };
+  }
+  return { profile, settings, entries, notes, journal };
 }
 
 export function saveProfile(p = {}) {
@@ -162,13 +190,19 @@ export function upsertEntry(date, e = {}) {
   });
 }
 
-// Update only the provided (finite) fields for a date, keeping the rest. Used by the AI.
+// Update the entry for a date. A field is only touched when its key is present in
+// `partial`: absent -> keep existing (the AI sends only changed keys); present but
+// blank -> clear it (so the table can erase a value the user typed on the wrong day).
 export function mergeEntry(date, partial = {}) {
   const cur = db.prepare('SELECT intake, active, steps, weight, protein, carbs, fat FROM entries WHERE date = ?').get(date) || {};
-  const pick = k => { const v = numOrNull(partial[k]); return v !== null ? v : (cur[k] ?? null); };
-  const w = weightOrNull(partial.weight); // out-of-range weight -> keep the existing value
+  const pick = k => k in partial ? numOrNull(partial[k]) : (cur[k] ?? null);
+  const weight = !('weight' in partial)
+    ? (cur.weight ?? null)                     // not provided -> keep
+    : (partial.weight === '' || partial.weight === null || partial.weight === undefined)
+      ? null                                   // explicitly cleared -> erase
+      : (weightOrNull(partial.weight) ?? cur.weight ?? null); // out-of-range typo -> keep existing
   upsertEntry(date, {
-    intake: pick('intake'), active: pick('active'), steps: pick('steps'), weight: w !== null ? w : (cur.weight ?? null),
+    intake: pick('intake'), active: pick('active'), steps: pick('steps'), weight,
     protein: pick('protein'), carbs: pick('carbs'), fat: pick('fat')
   });
 }
@@ -237,6 +271,52 @@ export function deleteNote(id) {
   const note = db.prepare('SELECT id, date, text, created_at AS createdAt FROM notes WHERE id = ?').get(id);
   if (note) db.prepare('DELETE FROM notes WHERE id = ?').run(id);
   return note;
+}
+
+// --- Journal: one rich-HTML document per day ---
+
+export function getJournal(date) {
+  return db.prepare('SELECT date, html, updated_at AS updatedAt FROM journal WHERE date = ?').get(String(date || '')) || null;
+}
+
+export function saveJournal(date, html) {
+  const d = String(date || '').trim();
+  if (!d) return null;
+  const clean = sanitizeHtml(html);
+  // Blank page (no visible text) means "no entry" — delete rather than store an empty shell.
+  if (!stripTags(clean)) { db.prepare('DELETE FROM journal WHERE date = ?').run(d); return null; }
+  db.prepare(`
+    INSERT INTO journal (date, html, updated_at) VALUES (?, ?, datetime('now'))
+    ON CONFLICT(date) DO UPDATE SET html = excluded.html, updated_at = datetime('now')
+  `).run(d, clean);
+  return getJournal(d);
+}
+
+export function listJournal() {
+  return db.prepare('SELECT date, html, updated_at AS updatedAt FROM journal ORDER BY date')
+    .all().map(r => ({ date: r.date, updatedAt: r.updatedAt, words: countWords(r.html) }));
+}
+
+// Journal text per day for the AI — same {date, text} shape the prompt already expects.
+export function journalForAI() {
+  return db.prepare('SELECT date, html FROM journal ORDER BY date')
+    .all().map(r => ({ date: r.date, text: stripTags(r.html) })).filter(r => r.text);
+}
+
+// One-time: fold legacy per-day notes into a journal document. Idempotent — skips
+// any date that already has a journal entry, so it is safe to run on every boot.
+export function migrateNotesToJournal() {
+  const dates = db.prepare(`
+    SELECT DISTINCT date FROM notes
+    WHERE date NOT IN (SELECT date FROM journal)
+  `).all().map(r => r.date);
+  db.transaction(() => {
+    for (const date of dates) {
+      const html = db.prepare('SELECT text FROM notes WHERE date = ? ORDER BY id').all(date)
+        .map(n => `<p>${escapeHtml(n.text)}</p>`).join('');
+      db.prepare("INSERT INTO journal (date, html, updated_at) VALUES (?, ?, datetime('now'))").run(date, html);
+    }
+  })();
 }
 
 // Distinct past meals (most recent values per name) for type-ahead suggestions.

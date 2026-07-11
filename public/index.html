@@ -648,32 +648,93 @@
     .meal-item .me-save:hover, .meal-item .me-cancel:hover { transform: none; box-shadow: none; border: none; }
     .meals-add { display: grid; grid-template-columns: 1fr 72px 46px 46px 46px auto; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--card-border); }
     .meals-add input { min-width: 0; }
-    .notes-list { padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
-    .notes-list:empty::before { content: "No notes for this day yet."; color: var(--muted); font-size: 13px; }
-    .note-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 11px; border: 1px solid var(--card-border); border-radius: 12px; background: var(--stat-bg); }
-    .note-text { flex: 1; min-width: 0; white-space: pre-wrap; word-break: break-word; font-size: 14px; line-height: 1.4; }
-    .note-item .nedit, .note-item .ndel { background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 15px; line-height: 1; padding: 2px 4px; }
-    .note-item .nedit:hover { color: var(--primary); transform: none; box-shadow: none; border: none; }
-    .note-item .ndel { font-size: 17px; }
-    .note-item .ndel:hover { color: var(--bad); transform: none; box-shadow: none; border: none; }
-    .note-item.editing { flex-wrap: wrap; gap: 8px; }
-    .note-item textarea {
-      width: 100%; min-width: 0; resize: vertical; min-height: 72px; max-height: 180px;
-      border-radius: 11px; border: 1px solid var(--input-border); background: var(--input);
-      color: var(--text); padding: 9px 10px; font: inherit; line-height: 1.4; outline: none;
+    /* --- Journal (inline-editable reader) --- */
+    .jr-reader { position: fixed; inset: 0; z-index: 60; background: var(--bg); display: flex; flex-direction: column; }
+    .jr-reader.hidden { display: none; }
+    .jr-reader-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 22px; background: linear-gradient(135deg, var(--primary), var(--primary-2)); color: #fff; }
+    .jr-reader-head strong { font-size: 17px; }
+    .jr-head-right { display: flex; align-items: center; gap: 12px; }
+    .jr-saved { font-size: 11px; font-weight: 700; color: rgba(255,255,255,.82); white-space: nowrap; }
+    .jr-reader-head button { background: transparent; border: none; color: #fff; cursor: pointer; }
+    .jr-reader-head #journalReaderClose { width: 34px; height: 34px; font-size: 24px; line-height: 1; border-radius: 8px; opacity: .85; }
+    .jr-reader-head #journalReaderClose:hover { opacity: 1; transform: none; box-shadow: none; }
+    .jr-toggle { height: 32px; padding: 0 14px; border-radius: 999px !important; background: rgba(255,255,255,.16) !important; color: #fff; font-weight: 700; font-size: 13px; }
+    .jr-toggle:hover { background: rgba(255,255,255,.26) !important; transform: none; box-shadow: none; }
+    .jr-toggle.on { background: #fff !important; color: var(--primary); }
+
+    /* Toolbar — a floating card centered directly above the doc, so controls sit where you type */
+    .jr-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 3px 4px; width: min(860px, calc(100% - 48px)); margin: 16px auto 0; padding: 6px 8px; border: 1px solid var(--card-border); border-radius: 12px; background: var(--panel); box-shadow: 0 6px 22px var(--shadow); }
+    .jr-toolbar.hidden { display: none; }
+    .jr-grp { display: flex; align-items: center; gap: 3px; padding-right: 8px; margin-right: 5px; border-right: 1px solid var(--card-border); flex: 0 0 auto; }
+    .jr-grp:last-child { border-right: none; margin-right: 0; padding-right: 0; }
+    .jr-toolbar button, .jr-toolbar select { height: 32px; border-radius: 8px; border: 1px solid transparent; background: transparent; color: var(--text); font-size: 14px; cursor: pointer; padding: 0 8px; display: inline-flex; align-items: center; justify-content: center; }
+    .jr-toolbar button { min-width: 32px; }
+    .jr-toolbar button:hover, .jr-toolbar select:hover { background: var(--stat-bg); border-color: var(--card-border); transform: none; box-shadow: none; }
+    .jr-toolbar button:active { background: var(--accent-soft); }
+    .jr-toolbar select { border-color: var(--card-border); font-weight: 650; font-size: 13px; padding: 0 6px; background: var(--panel); }
+    .jr-toolbar svg { display: block; }
+    .jr-color { display: inline-flex; align-items: center; justify-content: center; height: 32px; padding: 0 6px; border-radius: 8px; border: 1px solid transparent; cursor: pointer; position: relative; }
+    .jr-color:hover { background: var(--stat-bg); border-color: var(--card-border); }
+    .jr-color .jr-a { font-weight: 800; font-size: 14px; line-height: 1; border-bottom: 3px solid currentColor; padding-bottom: 1px; }
+    .jr-color .jr-hilite { border-bottom-color: #fde047; background: rgba(253,224,71,.35); border-radius: 2px 2px 0 0; padding: 0 2px 1px; }
+    .jr-color input[type=color] { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+    .jr-clear { font-weight: 800; font-size: 13px; letter-spacing: -1px; }
+    .jr-meal-btn { font-weight: 700; font-size: 13px !important; gap: 4px; white-space: nowrap; }
+    .jr-meal-menu { position: fixed; z-index: 65; width: 300px; max-height: 300px; overflow-y: auto; background: var(--panel); border: 1px solid var(--card-border); border-radius: 12px; box-shadow: 0 18px 50px var(--shadow); padding: 6px; display: flex; flex-direction: column; gap: 3px; }
+    .jr-meal-menu.hidden { display: none; }
+    .jr-meal-pick { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; background: transparent; border: none; border-radius: 8px; padding: 8px 10px; cursor: pointer; color: var(--text); }
+    .jr-meal-pick:hover { background: var(--stat-bg); transform: none; box-shadow: none; }
+    .jr-mp-name { font-weight: 650; font-size: 14px; }
+    .jr-mp-macros { font-size: 12px; color: var(--muted); }
+    .jr-meal-empty { padding: 10px; font-size: 13px; color: var(--muted); }
+
+    /* Body: index + book */
+    .jr-reader-body { flex: 1; min-height: 0; display: grid; grid-template-columns: 240px 1fr; }
+    .jr-index { border-right: 1px solid var(--card-border); overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 4px; background: var(--panel); }
+    .jr-idx-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; text-align: left; background: transparent; border: 1px solid transparent; border-radius: 10px; padding: 9px 11px; cursor: pointer; color: var(--text); }
+    .jr-idx-item:hover { background: var(--stat-bg); transform: none; box-shadow: none; }
+    .jr-idx-item.active { background: var(--accent-soft); border-color: var(--primary); }
+    .jr-idx-date { font-weight: 650; font-size: 13px; }
+    .jr-idx-words { font-size: 11px; color: var(--muted); }
+    .jr-idx-empty { color: var(--muted); font-size: 13px; padding: 10px; }
+    .jr-book { display: flex; flex-direction: column; min-height: 0; }
+    .jr-page { flex: 1; min-height: 0; overflow: hidden; display: flex; justify-content: center; padding: 14px 24px 24px; }
+    .jr-page-sheet, .jr-empty { width: min(860px, 100%); background: var(--panel); border: 1px solid var(--card-border); border-radius: var(--radius); box-shadow: 0 10px 44px var(--shadow); }
+    .jr-page-sheet { display: flex; flex-direction: column; min-height: 0; padding: 40px 52px 8px; }
+    .jr-reader.editing .jr-page-sheet { border-color: color-mix(in srgb, var(--primary) 40%, var(--card-border)); box-shadow: 0 0 0 3px var(--accent-soft), 0 10px 44px var(--shadow); }
+    .jr-page-date { flex: 0 0 auto; font-size: 13px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid var(--card-border); }
+    .jr-page-inner { flex: 1; min-height: 0; overflow-y: auto; padding-right: 6px; padding-bottom: 32px; line-height: 1.75; font-size: 16px; color: var(--text); outline: none; }
+    .jr-page-inner.empty::before { content: attr(data-placeholder); color: var(--muted); pointer-events: none; }
+    .jr-page-inner:focus { outline: none; }
+    .jr-page-inner h1 { font-size: 27px; margin: 16px 0 8px; line-height: 1.25; }
+    .jr-page-inner h2 { font-size: 21px; margin: 14px 0 6px; }
+    .jr-page-inner h3 { font-size: 17px; margin: 12px 0 5px; }
+    .jr-page-inner p { margin: 0 0 12px; }
+    .jr-page-inner ul, .jr-page-inner ol { margin: 0 0 12px; padding-left: 26px; }
+    .jr-page-inner blockquote { margin: 12px 0; padding: 6px 16px; border-left: 3px solid var(--primary); color: var(--muted); font-style: italic; }
+    .jr-page-inner pre { margin: 12px 0; padding: 12px 14px; background: var(--stat-bg); border: 1px solid var(--card-border); border-radius: 10px; font-family: Consolas, monospace; font-size: 14px; white-space: pre-wrap; }
+    .jr-page-inner hr { border: none; border-top: 1px solid var(--card-border); margin: 20px 0; }
+    .jr-page-inner a { color: var(--primary); }
+    .jr-meal { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 4px 2px; padding: 8px 12px; border: 1px solid var(--card-border); border-left: 3px solid var(--primary); border-radius: 10px; background: var(--stat-bg); user-select: none; vertical-align: middle; }
+    .jr-meal-emoji { font-size: 15px; }
+    .jr-meal .jr-meal-name { font-weight: 700; font-size: 14px; }
+    .jr-meal .jr-meal-macros { font-size: 12px; color: var(--muted); }
+    .jr-empty { text-align: center; color: var(--muted); padding: 60px 20px; }
+    .jr-empty p:first-child { font-size: 40px; margin-bottom: 10px; }
+    .jr-flip { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 12px; border-top: 1px solid var(--card-border); background: var(--panel); }
+    .jr-flip button { min-width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--card-border); background: var(--panel); color: var(--text); cursor: pointer; }
+    .jr-flip button:hover:not(:disabled) { border-color: var(--primary); transform: none; box-shadow: none; }
+    .jr-flip button:disabled { opacity: .35; cursor: default; }
+    .jr-page-label { font-size: 13px; font-weight: 650; color: var(--muted); min-width: 180px; text-align: center; }
+    @media (max-width: 720px) {
+      .jr-reader-body { grid-template-columns: 1fr; }
+      .jr-index { display: none; }
+      .jr-toolbar { width: calc(100% - 20px); }
+      .jr-page { padding: 12px 10px 16px; }
+      .jr-page-sheet, .jr-empty { padding: 26px 22px; }
+      .jr-reader-head { padding: 12px 16px; }
+      .jr-meal-menu { right: 10px; left: 10px; width: auto; }
     }
-    .note-item textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--accent-soft); }
-    .note-item .n-save, .note-item .n-cancel { background: transparent; border: none; cursor: pointer; font-size: 16px; line-height: 1; padding: 2px 6px; }
-    .note-item .n-save { color: var(--good); margin-left: auto; }
-    .note-item .n-save:hover, .note-item .n-cancel:hover { transform: none; box-shadow: none; border: none; }
-    .notes-add { display: flex; gap: 10px; align-items: flex-end; padding: 12px 14px; border-top: 1px solid var(--card-border); }
-    .notes-add textarea {
-      flex: 1; height: 46px; min-height: 46px; max-height: 160px; resize: none; overflow-y: hidden;
-      border-radius: 14px; border: 1px solid var(--input-border); background: var(--input);
-      color: var(--text); padding: 12px 14px; font: inherit; line-height: 1.4; outline: none;
-    }
-    .notes-add textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--accent-soft); }
-    .notes-add button { border-radius: 14px; padding: 0 20px; height: 46px; flex: none; }
     @media (max-width: 560px) {
       .meals-add { grid-template-columns: 1fr 1fr; }
       .ach-cards { grid-template-columns: 1fr 1fr; }
@@ -764,6 +825,7 @@
 
       <div class="profile-wrap">
         <div class="streaks" id="streaks"></div>
+        <button id="journalBtn" class="ach-chip" type="button" title="Food journal"><span class="ach-ico">📖</span> Journal</button>
         <button id="achBtn" class="ach-chip" type="button" title="Achievements"><span class="ach-ico">🏅</span> <span id="achChipCount">0</span></button>
         <button id="profileButton" class="profile-chip" type="button" aria-haspopup="dialog">
           <span class="avatar" aria-hidden="true">👤</span>
@@ -796,6 +858,7 @@
                 <option value="steps">Steps</option>
                 <option value="macros">Macros</option>
                 <option value="rings">Goal rings</option>
+                <option value="journal">Journal</option>
               </select>
               <select id="reportRange" aria-label="Timeframe">
                 <option value="today">Today</option>
@@ -904,14 +967,82 @@
       </div>
     </div>
 
-    <div id="notesModal" class="modal hidden">
-      <div class="modal-card">
-        <div class="modal-head"><strong id="notesTitle">Notes</strong><button id="notesClose" type="button" aria-label="Close">×</button></div>
-        <div class="notes-list" id="notesList"></div>
-        <form class="notes-add" id="notesForm">
-          <textarea id="noteText" rows="1" placeholder="Add a note" aria-label="Note text"></textarea>
-          <button type="submit" class="primary">Save</button>
-        </form>
+    <div id="journalReader" class="jr-reader hidden">
+      <div class="jr-reader-head">
+        <strong>📖 Food Journal</strong>
+        <div class="jr-head-right">
+          <span id="journalSaved" class="jr-saved"></span>
+          <button id="jrEditToggle" type="button" class="jr-toggle">✎ Edit</button>
+          <button id="journalReaderClose" type="button" aria-label="Close">×</button>
+        </div>
+      </div>
+
+      <div class="jr-reader-body">
+        <aside class="jr-index" id="journalIndex"></aside>
+        <div class="jr-book">
+
+      <div class="jr-toolbar hidden" id="journalToolbar" role="toolbar" aria-label="Formatting">
+        <div class="jr-grp">
+          <button type="button" data-cmd="undo" title="Undo (Ctrl+Z)" aria-label="Undo">↶</button>
+          <button type="button" data-cmd="redo" title="Redo (Ctrl+Y)" aria-label="Redo">↷</button>
+        </div>
+        <div class="jr-grp">
+          <select data-block title="Paragraph style" aria-label="Paragraph style">
+            <option value="p">Body</option>
+            <option value="h1">Title</option>
+            <option value="h2">Heading</option>
+            <option value="h3">Subheading</option>
+            <option value="blockquote">Quote</option>
+            <option value="pre">Code block</option>
+          </select>
+          <select data-font title="Font" aria-label="Font">
+            <option value="">Sans</option>
+            <option value="Georgia, serif">Serif</option>
+            <option value="Consolas, monospace">Mono</option>
+            <option value="'Segoe Print','Ink Free',cursive">Handwritten</option>
+          </select>
+          <select data-size title="Text size" aria-label="Text size">
+            <option value="1">XS</option>
+            <option value="2">Small</option>
+            <option value="3" selected>Normal</option>
+            <option value="4">Medium</option>
+            <option value="5">Large</option>
+            <option value="6">Huge</option>
+          </select>
+        </div>
+        <div class="jr-grp">
+          <button type="button" data-cmd="bold" title="Bold (Ctrl+B)" aria-label="Bold"><b>B</b></button>
+          <button type="button" data-cmd="italic" title="Italic (Ctrl+I)" aria-label="Italic"><i>I</i></button>
+          <button type="button" data-cmd="underline" title="Underline (Ctrl+U)" aria-label="Underline"><u>U</u></button>
+          <button type="button" data-cmd="strikeThrough" title="Strikethrough" aria-label="Strikethrough"><s>S</s></button>
+          <label class="jr-color" title="Text color"><span class="jr-a">A</span><input type="color" data-color value="#10b981" aria-label="Text color"></label>
+          <label class="jr-color" title="Highlight"><span class="jr-a jr-hilite">A</span><input type="color" data-hilite value="#fde047" aria-label="Highlight color"></label>
+        </div>
+        <div class="jr-grp">
+          <button type="button" data-cmd="insertUnorderedList" title="Bulleted list" aria-label="Bulleted list"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="4" cy="6" r="1.3" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1.3" fill="currentColor" stroke="none"/><path d="M9 6h11M9 12h11M9 18h11"/></svg></button>
+          <button type="button" data-cmd="insertOrderedList" title="Numbered list" aria-label="Numbered list"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 6h10M10 12h10M10 18h10"/><text x="1" y="8" font-size="7" font-weight="700" fill="currentColor" stroke="none">1</text><text x="1" y="14" font-size="7" font-weight="700" fill="currentColor" stroke="none">2</text><text x="1" y="20" font-size="7" font-weight="700" fill="currentColor" stroke="none">3</text></svg></button>
+          <button type="button" data-cmd="outdent" title="Decrease indent (Shift+Tab)" aria-label="Decrease indent"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 5H4M20 19H4M20 9h-9M20 15h-9"/><path d="M7 8l-3 4 3 4"/></svg></button>
+          <button type="button" data-cmd="indent" title="Increase indent (Tab)" aria-label="Increase indent"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16M4 19h16M11 9h9M11 15h9"/><path d="M4 8l3 4-3 4"/></svg></button>
+        </div>
+        <div class="jr-grp">
+          <button type="button" data-cmd="justifyLeft" title="Align left" aria-label="Align left"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h13"/></svg></button>
+          <button type="button" data-cmd="justifyCenter" title="Align center" aria-label="Align center"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M7 12h10M6 18h12"/></svg></button>
+          <button type="button" data-cmd="justifyRight" title="Align right" aria-label="Align right"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M10 12h10M7 18h13"/></svg></button>
+        </div>
+        <div class="jr-grp">
+          <button type="button" data-cmd="insertHorizontalRule" title="Divider" aria-label="Insert divider">―</button>
+          <button type="button" data-cmd="removeFormat" title="Clear formatting" aria-label="Clear formatting"><span class="jr-clear">A×</span></button>
+          <button type="button" id="journalInsertMeal" class="jr-meal-btn" title="Insert one of this day's meals">🍽 Meal</button>
+        </div>
+      </div>
+      <div id="journalMealMenu" class="jr-meal-menu hidden"></div>
+          <div class="jr-page" id="journalPage"></div>
+          <div class="jr-flip">
+            <button id="jrPrev" type="button" title="Previous entry" aria-label="Previous entry">◀</button>
+            <span id="jrPageLabel" class="jr-page-label"></span>
+            <button id="jrNext" type="button" title="Next entry" aria-label="Next entry">▶</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1023,7 +1154,8 @@
       profile: { name: "Shawn", sex: "male", age: 35, heightCm: 178, weightKg: 102 },
       settings: { weeklyLossKg: 1, stepsGoal: 10000, weightGoal: 95 },
       entries: {},
-      notes: {}
+      notes: {},
+      journal: {}
     };
 
     let state = JSON.parse(JSON.stringify(seed));
@@ -1075,12 +1207,19 @@
       mealF: document.getElementById("mealF"),
       mealSuggest: document.getElementById("mealSuggest"),
       mealsClose: document.getElementById("mealsClose"),
-      notesModal: document.getElementById("notesModal"),
-      notesTitle: document.getElementById("notesTitle"),
-      notesList: document.getElementById("notesList"),
-      notesForm: document.getElementById("notesForm"),
-      noteText: document.getElementById("noteText"),
-      notesClose: document.getElementById("notesClose"),
+      journalBtn: document.getElementById("journalBtn"),
+      journalSaved: document.getElementById("journalSaved"),
+      journalToolbar: document.getElementById("journalToolbar"),
+      journalInsertMeal: document.getElementById("journalInsertMeal"),
+      journalMealMenu: document.getElementById("journalMealMenu"),
+      journalReader: document.getElementById("journalReader"),
+      journalReaderClose: document.getElementById("journalReaderClose"),
+      journalIndex: document.getElementById("journalIndex"),
+      journalPage: document.getElementById("journalPage"),
+      jrPrev: document.getElementById("jrPrev"),
+      jrNext: document.getElementById("jrNext"),
+      jrPageLabel: document.getElementById("jrPageLabel"),
+      jrEditToggle: document.getElementById("jrEditToggle"),
       chatLog: document.getElementById("chatLog"),
       chatForm: document.getElementById("chatForm"),
       chatInput: document.getElementById("chatInput"),
@@ -1157,7 +1296,8 @@
         profile: { ...seed.profile, ...(input.profile || {}) },
         settings: { ...seed.settings, ...(input.settings || {}) },
         entries: { ...(input.entries || {}) },
-        notes: { ...(input.notes || {}) }
+        notes: { ...(input.notes || {}) },
+        journal: { ...(input.journal || {}) }
       };
     }
 
@@ -1228,8 +1368,12 @@
       els.dateClear.addEventListener("click", () => { customStart = customEnd = null; els.reportRange.value = "week"; render(); syncDates(); });
       els.mealsClose.addEventListener("click", closeMeals);
       els.mealsModal.addEventListener("click", e => { if (e.target === els.mealsModal) closeMeals(); });
-      els.notesClose.addEventListener("click", closeNotes);
-      els.notesModal.addEventListener("click", e => { if (e.target === els.notesModal) closeNotes(); });
+      els.journalBtn.addEventListener("click", () => openReader());
+      wireJournalToolbar();
+      els.journalReaderClose.addEventListener("click", closeReader);
+      els.jrPrev.addEventListener("click", () => flipReader(-1));
+      els.jrNext.addEventListener("click", () => flipReader(1));
+      els.jrEditToggle.addEventListener("click", () => setEditMode(!editMode));
       els.achBtn.addEventListener("click", openAchievements);
       els.modalClose.addEventListener("click", closeModal);
       els.modal.addEventListener("click", e => { if (e.target === els.modal) closeModal(); });
@@ -1241,16 +1385,6 @@
         else if (edit) startEditMeal(edit.dataset.id);
         else if (save) saveMealEdit(save.closest(".meal-item"));
         else if (cancel) loadMeals(mealDate);
-      });
-      els.notesForm.addEventListener("submit", e => { e.preventDefault(); addNoteUI(); });
-      els.noteText.addEventListener("input", growNote);
-      els.notesList.addEventListener("click", e => {
-        const del = e.target.closest(".ndel"), edit = e.target.closest(".nedit");
-        const save = e.target.closest(".n-save"), cancel = e.target.closest(".n-cancel");
-        if (del) deleteNoteUI(del.dataset.id);
-        else if (edit) startEditNote(edit.dataset.id);
-        else if (save) saveNoteEdit(save.closest(".note-item"));
-        else if (cancel) loadNotes(noteDate);
       });
       els.mealName.addEventListener("input", () => {
         const m = mealMap[els.mealName.value.trim().toLowerCase()];
@@ -1287,7 +1421,11 @@
 
       els.profileButton.addEventListener("click", openSettings);
       document.addEventListener("keydown", event => {
-        if (event.key === "Escape") { closeModal(); closeMeals(); closeNotes(); }
+        if (event.key === "Escape") {
+          if (!els.journalMealMenu.classList.contains("hidden")) { els.journalMealMenu.classList.add("hidden"); return; }
+          if (!els.journalReader.classList.contains("hidden")) { if (editMode) setEditMode(false); else closeReader(); return; }
+          closeModal(); closeMeals();
+        }
       });
 
       [els.profileName, els.profileSex, els.profileAge, els.profileHeight, els.profileWeight].forEach(input => {
@@ -1637,97 +1775,188 @@
       render();
     }
 
-    let noteDate = null;
-    let currentNotes = [];
+    // --- Journal: a single inline-editable reader ("book") ---
+    let readerDate = null;     // date currently on the page
+    let editMode = false;      // inline editing on/off
+    let readerDates = [];      // nav order = entry dates ∪ current date
 
-    function openNotes(date) {
-      noteDate = date;
-      els.notesTitle.textContent = "Notes · " + prettyDate(date);
-      els.notesModal.classList.remove("hidden");
+    const editableEl = () => document.getElementById("jrPageInner");
+    const PLACEHOLDER = "Write about your day — how food made you feel, your wins, your struggles, your goals…";
+
+    function openReader(date, edit = false) {
+      const entries = Object.keys(state.journal || {}).sort();
+      readerDate = date || entries[entries.length - 1] || toIso(new Date());
+      editMode = !!edit;
+      els.journalReader.classList.remove("hidden");
       document.body.classList.add("no-scroll");
-      els.notesForm.reset();
-      growNote();
-      loadNotes(date);
-      setTimeout(() => els.noteText.focus(), 0);
+      renderReader();
     }
 
-    function growNote() {
-      els.noteText.style.height = "auto";
-      const full = els.noteText.scrollHeight;
-      els.noteText.style.height = Math.min(full, 160) + "px";
-      els.noteText.style.overflowY = full > 160 ? "auto" : "hidden";
-    }
-
-    function closeNotes() { els.notesModal.classList.add("hidden"); document.body.classList.remove("no-scroll"); }
-
-    async function loadNotes(date) {
-      try {
-        const res = await fetch("/api/notes?date=" + encodeURIComponent(date));
-        if (!res.ok) throw new Error("Notes request failed: " + res.status);
-        currentNotes = await res.json();
-        renderNotesList(currentNotes);
-      } catch (e) { currentNotes = []; els.notesList.innerHTML = ""; }
-    }
-
-    function renderNotesList(notes) {
-      els.notesList.innerHTML = notes.map(n => `
-        <div class="note-item" data-id="${n.id}">
-          <div class="note-text">${escapeHtml(n.text || "")}</div>
-          <button class="nedit" type="button" data-id="${n.id}" title="Edit" aria-label="Edit">✎</button>
-          <button class="ndel" type="button" data-id="${n.id}" title="Remove" aria-label="Remove">×</button>
-        </div>`).join("");
-    }
-
-    function startEditNote(id) {
-      const n = currentNotes.find(x => String(x.id) === String(id));
-      const item = els.notesList.querySelector(`.note-item[data-id="${id}"]`);
-      if (!n || !item) return;
-      item.classList.add("editing");
-      item.innerHTML = `
-        <textarea class="n-text" rows="3" placeholder="Note">${escapeHtml(n.text || "")}</textarea>
-        <button class="n-save" type="button" title="Save" aria-label="Save">✓</button>
-        <button class="n-cancel" type="button" title="Cancel" aria-label="Cancel">✕</button>`;
-      item.querySelector(".n-text").focus();
-    }
-
-    async function saveNoteEdit(item) {
-      const saved = await api("PUT", "/api/notes/" + item.dataset.id, {
-        text: item.querySelector(".n-text").value.trim()
-      });
-      if (!saved) {
-        toast("!", "Note not saved", "The running app has not loaded the notes API yet.");
-        return;
-      }
-      await refreshNotes();
-    }
-
-    async function addNoteUI() {
-      const text = els.noteText.value.trim();
-      if (!text) return;
-      const saved = await api("POST", "/api/notes", { date: noteDate, text });
-      if (!saved) {
-        toast("!", "Note not saved", "The running app has not loaded the notes API yet.");
-        return;
-      }
-      els.notesForm.reset();
-      growNote();
-      els.noteText.focus();
-      await refreshNotes();
-    }
-
-    async function deleteNoteUI(id) {
-      const deleted = await api("DELETE", "/api/notes/" + id);
-      if (!deleted) {
-        toast("!", "Note not deleted", "The running app has not loaded the notes API yet.");
-        return;
-      }
-      await refreshNotes();
-    }
-
-    async function refreshNotes() {
-      await loadNotes(noteDate);
+    async function closeReader() {
+      if (editMode) await saveJournalNow();
+      els.journalMealMenu.classList.add("hidden");
+      els.journalReader.classList.add("hidden");
+      document.body.classList.remove("no-scroll");
       state = await loadState();
       render();
+    }
+
+    async function setEditMode(on) {
+      if (!on && editMode) await saveJournalNow();
+      editMode = on;
+      els.journalMealMenu.classList.add("hidden");
+      renderReader();
+    }
+
+    async function flipReader(dir) {
+      if (editMode) await saveJournalNow();
+      const i = readerDates.indexOf(readerDate) + dir;
+      if (i < 0 || i >= readerDates.length) return;
+      readerDate = readerDates[i];
+      renderReader();
+    }
+
+    // Nav list: every day with an entry, plus the day being edited (so a brand-new page shows).
+    function navList() {
+      const set = new Set(Object.keys(state.journal || {}));
+      if (readerDate) set.add(readerDate);
+      return [...set].sort();
+    }
+
+    // Toolbar + edit toggle + index + page label. Does NOT touch the editable body.
+    function renderChrome() {
+      readerDates = navList();
+      els.jrEditToggle.textContent = editMode ? "✓ Done" : "✎ Edit";
+      els.jrEditToggle.classList.toggle("on", editMode);
+      els.journalToolbar.classList.toggle("hidden", !editMode);
+      els.journalReader.classList.toggle("editing", editMode);
+      const i = readerDates.indexOf(readerDate);
+      els.jrPrev.disabled = i <= 0;
+      els.jrNext.disabled = i < 0 || i >= readerDates.length - 1;
+      const meta = state.journal?.[readerDate];
+      const words = meta?.words || 0;
+      els.jrPageLabel.textContent = `${prettyDate(readerDate)}${words ? " · " + words + " word" + (words === 1 ? "" : "s") : editMode ? " · new entry" : ""}`;
+      const entries = Object.keys(state.journal || {}).sort();
+      els.journalIndex.innerHTML = entries.length
+        ? entries.map(d => `<button type="button" class="jr-idx-item${d === readerDate ? " active" : ""}" data-d="${d}">
+            <span class="jr-idx-date">${prettyDate(d)}</span>
+            <span class="jr-idx-words">${state.journal[d].words} w</span>
+          </button>`).join("")
+        : `<div class="jr-idx-empty">No entries yet.</div>`;
+      els.journalIndex.querySelectorAll(".jr-idx-item").forEach(b =>
+        b.addEventListener("click", async () => { if (editMode) await saveJournalNow(); readerDate = b.dataset.d; renderReader(); }));
+    }
+
+    // Full render: chrome + fetch and lay out the page body.
+    async function renderReader() {
+      renderChrome();
+      els.journalSaved.textContent = "";
+      els.journalPage.innerHTML = `<div class="jr-page-sheet"><div class="jr-page-date">${prettyDate(readerDate)}</div><div class="jr-page-inner" id="jrPageInner"></div></div>`;
+      const inner = editableEl();
+      let html = "";
+      try {
+        const r = await fetch("/api/journal?date=" + encodeURIComponent(readerDate));
+        const j = r.ok ? await r.json() : null;
+        html = (j && j.html) || "";
+      } catch (e) {}
+      inner.innerHTML = html;
+      inner.contentEditable = editMode ? "true" : "false";
+      inner.spellcheck = editMode;
+      inner.dataset.placeholder = PLACEHOLDER;
+      updatePlaceholder();
+      if (editMode) {
+        document.execCommand("styleWithCSS", false, true);
+        setTimeout(() => placeCaretEnd(inner), 0);
+      }
+      if (!Object.keys(state.journal || {}).length && !editMode) {
+        els.journalPage.innerHTML = `<div class="jr-empty"><p>📖</p><p>Your journal is empty.</p><p class="muted-cell">Hit ✎ Edit, or open any day's pencil in the table.</p></div>`;
+      }
+    }
+
+    function placeCaretEnd(el) {
+      el.focus();
+      const r = document.createRange(); r.selectNodeContents(el); r.collapse(false);
+      const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+    }
+
+    function updatePlaceholder() {
+      const inner = editableEl();
+      if (inner) inner.classList.toggle("empty", editMode && !inner.textContent.trim() && !inner.querySelector("img,.jr-meal,hr"));
+    }
+
+    // One-time wiring for the (static) toolbar. Commands act on the live editable body.
+    function wireJournalToolbar() {
+      const bar = els.journalToolbar;
+      bar.querySelectorAll("button[data-cmd]").forEach(b =>
+        b.addEventListener("mousedown", e => { e.preventDefault(); exec(b.dataset.cmd); }));
+      bar.querySelector("[data-block]").addEventListener("change", e => { exec("formatBlock", e.target.value.toUpperCase()); e.target.selectedIndex = 0; });
+      bar.querySelector("[data-font]").addEventListener("change", e => { if (e.target.value) exec("fontName", e.target.value); });
+      bar.querySelector("[data-size]").addEventListener("change", e => exec("fontSize", e.target.value));
+      bar.querySelector("[data-color]").addEventListener("input", e => exec("foreColor", e.target.value));
+      bar.querySelector("[data-hilite]").addEventListener("input", e => exec("hiliteColor", e.target.value));
+      els.journalInsertMeal.addEventListener("click", toggleMealMenu);
+      // Editing happens inside #jrPageInner, which is re-created each render — delegate.
+      els.journalPage.addEventListener("input", () => { if (editMode) { updatePlaceholder(); saveJournalDebounced(); } });
+      els.journalPage.addEventListener("keydown", e => {
+        if (!editMode) return;
+        if (e.key === "Tab") { e.preventDefault(); exec(e.shiftKey ? "outdent" : "indent"); }
+      });
+    }
+
+    function exec(cmd, val) {
+      if (!editMode) return;
+      const inner = editableEl();
+      if (inner) inner.focus();
+      document.execCommand(cmd, false, val);
+      updatePlaceholder();
+      saveJournalDebounced();
+    }
+
+    function saveJournalDebounced() { debounce("journal", saveJournalNow, 600); }
+
+    async function saveJournalNow() {
+      const inner = editableEl();
+      if (!readerDate || !inner) return;
+      const html = inner.innerHTML;
+      const res = await api("PUT", "/api/journal/" + readerDate, { html });
+      // Keep local state in step so the index/label/report update without a full reload.
+      const words = inner.textContent.trim() ? inner.textContent.trim().split(/\s+/).length : 0;
+      if (res && words) state.journal[readerDate] = { words, updatedAt: new Date().toISOString() };
+      else delete state.journal[readerDate];
+      if (res) els.journalSaved.textContent = words ? "Saved · " + new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "Empty";
+      renderChrome();
+    }
+
+    async function toggleMealMenu() {
+      const menu = els.journalMealMenu;
+      if (!menu.classList.contains("hidden")) { menu.classList.add("hidden"); return; }
+      let meals = [];
+      try { const r = await fetch("/api/meals?date=" + encodeURIComponent(readerDate)); if (r.ok) meals = await r.json(); } catch (e) {}
+      menu.innerHTML = meals.length
+        ? meals.map(m => `<button type="button" class="jr-meal-pick" data-meal='${escapeHtml(JSON.stringify(m))}'>
+            <span class="jr-mp-name">${escapeHtml(m.name || "Meal")}</span>
+            <span class="jr-mp-macros">${m.kcal != null ? fmt(m.kcal) + " kcal" : ""}${macroBits(m)}</span>
+          </button>`).join("")
+        : `<div class="jr-meal-empty">No meals logged for this day.</div>`;
+      menu.classList.remove("hidden");
+      // Anchor the menu just under the Meal button (it's position:fixed).
+      const r = els.journalInsertMeal.getBoundingClientRect();
+      menu.style.top = (r.bottom + 4) + "px";
+      menu.style.left = Math.max(8, Math.min(r.left, window.innerWidth - menu.offsetWidth - 8)) + "px";
+      menu.querySelectorAll(".jr-meal-pick").forEach(b =>
+        b.addEventListener("click", () => { insertMealCard(JSON.parse(b.dataset.meal)); menu.classList.add("hidden"); }));
+    }
+
+    function insertMealCard(m) {
+      const macros = (m.kcal != null ? fmt(m.kcal) + " kcal" : "") + macroBits(m);
+      const card = `<div class="jr-meal" contenteditable="false"><span class="jr-meal-emoji">🍽</span>` +
+        `<span class="jr-meal-name">${escapeHtml(m.name || "Meal")}</span>` +
+        `<span class="jr-meal-macros">${escapeHtml(macros)}</span></div>`;
+      const inner = editableEl();
+      if (inner) inner.focus();
+      document.execCommand("insertHTML", false, card + "<p>&nbsp;</p>");
+      updatePlaceholder();
+      saveJournalNow();
     }
 
     function macroBits(m) {
@@ -1743,6 +1972,15 @@
       if (!pred(rowData(toIso(start)))) start = addDays(start, -1);
       let n = 0;
       for (let i = 0; i < 400; i++) { if (pred(rowData(toIso(addDays(start, -i))))) n++; else break; }
+      return n;
+    }
+
+    // Consecutive days ending today (or yesterday) that have a journal entry.
+    function journalStreak() {
+      let start = new Date();
+      if (!state.journal?.[toIso(start)]) start = addDays(start, -1);
+      let n = 0;
+      for (let i = 0; i < 400; i++) { if (state.journal?.[toIso(addDays(start, -i))]) n++; else break; }
       return n;
     }
 
@@ -2224,6 +2462,7 @@
         totalBurn,
         // Deficit only exists when food is logged. No intake = unknown day, not a phantom win.
         deficit: intake === null ? null : totalBurn - intake,
+        journalWords: state.journal?.[date]?.words || 0,
         hasEnergyEntry,
         hasLoggedEntry
       };
@@ -2233,11 +2472,12 @@
       els.dailyRows.innerHTML = "";
       for (const r of rows) {
         const tr = document.createElement("tr");
-        const noteCount = Number(state.notes?.[r.date] || 0);
+        const jr = state.journal?.[r.date];
+        const jrTitle = jr ? "Journal · " + jr.words + " word" + (jr.words === 1 ? "" : "s") : "Journal";
         tr.innerHTML = `
           <td class="day"><button type="button" class="day-btn" data-date="${r.date}" title="View meals">${r.label}</button></td>
           <td class="meal-col"><button type="button" class="add-meal${r.intake != null ? " has-meals" : ""}" data-date="${r.date}" title="${r.intake != null ? "Meals logged" : "Meals"}" aria-label="Meals"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M2.5 10C2.5 6 7 4 12 4s9.5 2 9.5 6Z"/><rect x="2.5" y="10.9" width="19" height="2.8" rx="1.4"/><path d="M3.2 15h17.6c0 2.6-3.8 4.2-8.8 4.2S3.2 17.6 3.2 15Z"/></svg></button></td>
-          <td class="note-col"><button type="button" class="add-note${noteCount ? " has-notes" : ""}" data-date="${r.date}" title="${noteCount ? noteCount + " note" + (noteCount === 1 ? "" : "s") : "Notes"}" aria-label="Notes"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button></td>
+          <td class="note-col"><button type="button" class="add-note${jr ? " has-notes" : ""}" data-date="${r.date}" title="${jrTitle}" aria-label="Journal"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button></td>
           <td>${r.intake != null ? fmt(r.intake) : '<span class="muted-cell">—</span>'}</td>
           <td class="col-macro"><span class="muted-cell">${r.protein != null ? fmt(r.protein) : ""}</span></td>
           <td class="col-macro"><span class="muted-cell">${r.carbs != null ? fmt(r.carbs) : ""}</span></td>
@@ -2259,7 +2499,7 @@
         input.addEventListener("change", updateEntryFromInput);
       });
       els.dailyRows.querySelectorAll(".day-btn, .add-meal").forEach(b => b.addEventListener("click", () => openMeals(b.dataset.date)));
-      els.dailyRows.querySelectorAll(".add-note").forEach(b => b.addEventListener("click", () => openNotes(b.dataset.date)));
+      els.dailyRows.querySelectorAll(".add-note").forEach(b => b.addEventListener("click", () => openReader(b.dataset.date, true)));
     }
 
     function updateEntryFromInput(event) {
@@ -2485,6 +2725,8 @@
         protein: meanWhere("protein"),
         carbs: meanWhere("carbs"),
         fat: meanWhere("fat"),
+        words: rs.reduce((a, r) => a + (r.journalWords || 0), 0),
+        journalDays: rs.filter(r => r.journalWords > 0).length,
         chartWeightEstimated: rs.length === 1 ? rs[0].chartWeightEstimated : false
       };
     }
@@ -2552,6 +2794,18 @@
         drawMacros();
       } else if (type === "rings") {
         drawRings();
+      } else if (type === "journal") {
+        const entryDays = dates.filter(d => state.journal?.[d]).length;
+        const streak = journalStreak();
+        drawSingle({
+          note: `Journaled ${entryDays} of ${dates.length} day${dates.length === 1 ? "" : "s"}` + (streak > 1 ? ` · ${streak}-day streak` : ""),
+          values: data.map(b => b.words),
+          colorFor: () => "var(--burn)",
+          unit: "words", allowNeg: false,
+          goal: null,
+          legend: swatch("var(--burn)", "Words written") + (dates.length > 14 ? swatch("transparent", "per week") : ""),
+          tip: (b, v) => `${b.label}\n${fmt(v)} word${v === 1 ? "" : "s"}` + (b.journalDays > 1 ? ` · ${b.journalDays} days` : "")
+        });
       } else {
         drawIntakeBurn();
       }
